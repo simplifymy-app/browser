@@ -45,6 +45,8 @@ data class BrowserSettings(
     val mobileView: Boolean = true,
     val showTabStrip: Boolean = true,
     val hideToolbarOnScroll: Boolean = false,
+    val restoreTabs: Boolean = true,
+    val searchSuggestions: Boolean = true,
     val speedDialColumns: Int = 3,
     val speedDialStyle: SpeedDialStyle = SpeedDialStyle.IconAndTitle,
 )
@@ -63,6 +65,8 @@ private object Keys {
     val mobileView = booleanPreferencesKey("mobile_view")
     val showTabStrip = booleanPreferencesKey("show_tab_strip")
     val hideToolbarOnScroll = booleanPreferencesKey("hide_toolbar_on_scroll")
+    val restoreTabs = booleanPreferencesKey("restore_tabs")
+    val searchSuggestions = booleanPreferencesKey("search_suggestions")
     val speedDialColumns = intPreferencesKey("speed_dial_columns")
     val speedDialStyle = stringPreferencesKey("speed_dial_style")
 }
@@ -86,6 +90,8 @@ class SettingsRepository(private val context: Context) {
             mobileView = p[Keys.mobileView] ?: defaults.mobileView,
             showTabStrip = p[Keys.showTabStrip] ?: defaults.showTabStrip,
             hideToolbarOnScroll = p[Keys.hideToolbarOnScroll] ?: defaults.hideToolbarOnScroll,
+            restoreTabs = p[Keys.restoreTabs] ?: defaults.restoreTabs,
+            searchSuggestions = p[Keys.searchSuggestions] ?: defaults.searchSuggestions,
             speedDialColumns = p[Keys.speedDialColumns] ?: defaults.speedDialColumns,
             speedDialStyle = p.enum(Keys.speedDialStyle, defaults.speedDialStyle),
         )
@@ -104,6 +110,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun setMobileView(value: Boolean) = put(Keys.mobileView, value)
     suspend fun setShowTabStrip(value: Boolean) = put(Keys.showTabStrip, value)
     suspend fun setHideToolbarOnScroll(value: Boolean) = put(Keys.hideToolbarOnScroll, value)
+    suspend fun setRestoreTabs(value: Boolean) = put(Keys.restoreTabs, value)
+    suspend fun setSearchSuggestions(value: Boolean) = put(Keys.searchSuggestions, value)
 
     private suspend fun put(key: Preferences.Key<String>, value: Enum<*>) = put(key, value.name)
 

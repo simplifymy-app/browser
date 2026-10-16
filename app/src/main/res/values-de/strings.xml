@@ -124,4 +124,8 @@
     <string name="setting_tab_strip_hint">Offene Tabs unter der Symbolleiste anzeigen</string>
     <string name="setting_hide_toolbar">Symbolleiste beim Scrollen ausblenden</string>
     <string name="setting_hide_toolbar_hint">Nach oben scrollen, um sie wieder anzuzeigen</string>
+    <string name="setting_restore_tabs">Tabs wiederherstellen</string>
+    <string name="setting_restore_tabs_hint">Tabs beim Start des Browsers wieder öffnen</string>
+    <string name="setting_search_suggestions">Suchvorschläge</string>
+    <string name="setting_search_suggestions_hint">Beim Tippen Vorschläge von der Suchmaschine abrufen. In privaten Tabs aus</string>
 </resources>

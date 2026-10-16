@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -89,7 +90,10 @@ fun BrowserScreen(engineView: EngineView) {
     val activity = LocalActivity.current
 
     val menuActions = MenuActions(
-        newTab = viewModel::newTab,
+        newTab = {
+            viewModel.captureThumbnail(engineView)
+            viewModel.newTab(it)
+        },
         open = { overlay = it },
         forward = viewModel::goForward,
         savePage = viewModel::savePage,
@@ -121,7 +125,10 @@ fun BrowserScreen(engineView: EngineView) {
                 viewModel = viewModel,
                 engineView = engineView,
                 menuActions = menuActions,
-                onTabs = { overlay = Overlay.Tabs },
+                onTabs = {
+                    viewModel.captureThumbnail(engineView)
+                    overlay = Overlay.Tabs
+                },
                 onPanel = { overlay = Overlay.Bookmarks },
                 onSubmit = { if (it.trim().lowercase() in EXTENSIONS_SHORTCUTS) overlay = Overlay.Extensions else viewModel.submit(it) },
             )
@@ -179,6 +186,10 @@ private fun BrowserChrome(
 ) {
     val top = state.position == ToolbarPosition.Top
     val chrome = rememberChromeVisibility(engineView, hideOnScroll, state.url)
+    var editing by remember { mutableStateOf(false) }
+    val completion = viewModel.completion.collectAsStateWithLifecycle()
+    val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
+    LaunchedEffect(editing) { if (!editing) viewModel.setQuery("") }
     val toolbar = @Composable {
         BrowserToolbar(
             state = state,
@@ -188,6 +199,10 @@ private fun BrowserChrome(
             onPanel = onPanel,
             onTabs = onTabs,
             menu = { BrowserMenu(state, extensionActions, menuActions) },
+            editing = editing,
+            onEditingChange = { editing = it },
+            completion = completion.value,
+            onQueryChange = viewModel::setQuery,
             onSelectEngine = viewModel::selectSearchEngine,
         )
     }
@@ -195,9 +210,15 @@ private fun BrowserChrome(
         TabStrip(
             tabs = state.tabs,
             selectedId = state.selectedTabId,
-            onSelect = viewModel::selectTab,
+            onSelect = {
+                if (it != state.selectedTabId) viewModel.captureThumbnail(engineView)
+                viewModel.selectTab(it)
+            },
             onClose = viewModel::closeTab,
-            onNewTab = { viewModel.newTab(state.private) },
+            onNewTab = {
+                viewModel.captureThumbnail(engineView)
+                viewModel.newTab(state.private)
+            },
         )
     }
     Column(
@@ -215,6 +236,20 @@ private fun BrowserChrome(
         Box(Modifier.weight(1f)) {
             AndroidView(factory = { engineView.asView() }, modifier = Modifier.fillMaxSize())
             if (state.speedDial) SpeedDialScreen(onOpen = viewModel::open)
+            if (editing && suggestions.isNotEmpty()) {
+                SuggestionList(
+                    suggestions = suggestions,
+                    nearBottom = !top,
+                    onPick = { suggestion ->
+                        editing = false
+                        when (suggestion) {
+                            is Suggestion.Page -> viewModel.open(suggestion.url)
+                            is Suggestion.Search -> onSubmit(suggestion.text)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().align(if (top) Alignment.TopCenter else Alignment.BottomCenter),
+                )
+            }
         }
         if (!top && chrome.present) {
             Column(Modifier.graphicsLayer { alpha = chrome.alpha() }) {

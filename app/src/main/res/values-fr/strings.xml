@@ -124,4 +124,8 @@
     <string name="setting_tab_strip_hint">Afficher les onglets ouverts sous la barre d\'outils</string>
     <string name="setting_hide_toolbar">Masquer la barre au défilement</string>
     <string name="setting_hide_toolbar_hint">Faites défiler vers le haut pour la réafficher</string>
+    <string name="setting_restore_tabs">Restaurer les onglets</string>
+    <string name="setting_restore_tabs_hint">Rouvrir vos onglets au démarrage du navigateur</string>
+    <string name="setting_search_suggestions">Suggestions de recherche</string>
+    <string name="setting_search_suggestions_hint">Demander des suggestions au moteur de recherche pendant la saisie. Désactivé en navigation privée</string>
 </resources>

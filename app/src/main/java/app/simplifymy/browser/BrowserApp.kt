@@ -3,6 +3,7 @@ package app.simplifymy.browser
 import android.app.Application
 import android.content.Context
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import mozilla.components.browser.state.action.DefaultDesktopModeAction
@@ -43,7 +44,7 @@ class BrowserApp : Application() {
                 }
             }
             scope.launch {
-                tabsUseCases.restore(sessionStorage)
+                if (settings.settings.first().restoreTabs) tabsUseCases.restore(sessionStorage)
                 if (store.state.tabs.isEmpty()) tabsUseCases.addTab(SPEED_DIAL_URL)
                 sessionStorage.autoSave(store).periodicallyInForeground().whenGoingToBackground().whenSessionsChange()
             }

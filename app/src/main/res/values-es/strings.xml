@@ -124,4 +124,8 @@
     <string name="setting_tab_strip_hint">Mostrar las pestañas abiertas bajo la barra</string>
     <string name="setting_hide_toolbar">Ocultar la barra al desplazarse</string>
     <string name="setting_hide_toolbar_hint">Desplázate hacia arriba para que vuelva</string>
+    <string name="setting_restore_tabs">Restaurar pestañas</string>
+    <string name="setting_restore_tabs_hint">Volver a abrir tus pestañas al iniciar el navegador</string>
+    <string name="setting_search_suggestions">Sugerencias de búsqueda</string>
+    <string name="setting_search_suggestions_hint">Pedir sugerencias al buscador mientras escribes. Desactivado en pestañas privadas</string>
 </resources>

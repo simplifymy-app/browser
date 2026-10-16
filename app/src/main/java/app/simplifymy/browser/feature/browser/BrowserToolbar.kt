@@ -45,6 +45,10 @@ fun BrowserToolbar(
     onTabs: () -> Unit,
     menu: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    editing: Boolean = false,
+    onEditingChange: (Boolean) -> Unit = {},
+    completion: Completion? = null,
+    onQueryChange: (String) -> Unit = {},
     onSelectEngine: (SearchEngine) -> Unit = {},
 ) {
     val top = state.position == ToolbarPosition.Top
@@ -57,7 +61,11 @@ fun BrowserToolbar(
             AddressBar(
                 url = state.url,
                 searchIcon = state.searchIcon,
+                editing = editing,
+                onEditingChange = onEditingChange,
                 onSubmit = onSubmit,
+                completion = completion,
+                onQueryChange = onQueryChange,
                 modifier = Modifier.weight(1f).padding(start = Space.gutter),
                 private = state.private,
                 loading = state.loading,

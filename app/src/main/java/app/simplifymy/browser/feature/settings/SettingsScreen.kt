@@ -138,6 +138,12 @@ fun SettingsContent(
                     { update { setHideToolbarOnScroll(it) } },
                     hint = stringResource(R.string.setting_hide_toolbar_hint),
                 )
+                ToggleSetting(
+                    stringResource(R.string.setting_restore_tabs),
+                    settings.restoreTabs,
+                    { update { setRestoreTabs(it) } },
+                    hint = stringResource(R.string.setting_restore_tabs_hint),
+                )
                 PickerSetting(stringResource(R.string.toolbar_position)) {
                         SegmentedPicker(ToolbarPosition.entries, settings.toolbarPosition, { update { setToolbarPosition(it) } }) {
                             stringResource(it.labelRes)
@@ -203,6 +209,12 @@ fun SettingsContent(
                 }
 
                 SettingsSection(stringResource(R.string.section_privacy)) {
+                    ToggleSetting(
+                        stringResource(R.string.setting_search_suggestions),
+                        settings.searchSuggestions,
+                        { update { setSearchSuggestions(it) } },
+                        hint = stringResource(R.string.setting_search_suggestions_hint),
+                    )
                     LinkSetting(stringResource(R.string.setting_clear_data), { clearing = true }, stringResource(R.string.setting_clear_data_hint))
                 }
 

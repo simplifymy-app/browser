@@ -7,7 +7,9 @@ import androidx.core.app.NotificationManagerCompat
 import app.simplifymy.browser.core.addons.Amo
 import app.simplifymy.browser.core.backup.Backup
 import app.simplifymy.browser.core.database.BrowserDatabase
+import app.simplifymy.browser.core.database.TabThumbnails
 import app.simplifymy.browser.core.database.speedDialSnapshots
+import app.simplifymy.browser.core.icons.DeclaredIcons
 import app.simplifymy.browser.core.search.ADDITIONAL_SEARCH_ENGINES
 import app.simplifymy.browser.core.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.stateIn
 import mozilla.components.browser.engine.gecko.GeckoEngine
 import mozilla.components.browser.engine.gecko.fetch.GeckoViewFetchClient
 import mozilla.components.browser.icons.BrowserIcons
+import mozilla.components.browser.icons.Icon
 import mozilla.components.browser.icons.IconRequest
 import mozilla.components.browser.session.storage.SessionStorage
 import mozilla.components.browser.state.action.BrowserAction
@@ -82,14 +85,26 @@ class Components(private val context: Context) {
 
     val thumbnails by lazy { ThumbnailStorage(context) }
 
+    val tabThumbnails by lazy { TabThumbnails(thumbnails) }
+
+    private val declaredIcons by lazy { DeclaredIcons(client) }
+
     suspend fun siteIcon(url: String): Bitmap {
+        declaredIcons.of(url)?.takeIf { it.isNotEmpty() }?.let { return loadIcon(url, it) }
+        val cached = icons.loadIcon(IconRequest(url, IconRequest.Size.LAUNCHER)).await()
+        if (cached.source != Icon.Source.GENERATOR) return cached.bitmap
         val origin = Uri.parse(url).let { "${it.scheme}://${it.authority}" }
-        val resources = listOf(
-            IconRequest.Resource("$origin/apple-touch-icon.png", IconRequest.Resource.Type.APPLE_TOUCH_ICON),
-            IconRequest.Resource("$origin/favicon.ico", IconRequest.Resource.Type.FAVICON),
+        return loadIcon(
+            url,
+            listOf(
+                IconRequest.Resource("$origin/apple-touch-icon.png", IconRequest.Resource.Type.APPLE_TOUCH_ICON),
+                IconRequest.Resource("$origin/favicon.ico", IconRequest.Resource.Type.FAVICON),
+            ),
         )
-        return icons.loadIcon(IconRequest(url, IconRequest.Size.LAUNCHER, resources)).await().bitmap
     }
+
+    private suspend fun loadIcon(url: String, resources: List<IconRequest.Resource>) =
+        icons.loadIcon(IconRequest(url, IconRequest.Size.LAUNCHER, resources)).await().bitmap
 
     val sessionStorage by lazy { SessionStorage(context, engine, applicationScope = scope) }
 
@@ -106,6 +121,7 @@ class Components(private val context: Context) {
                 RegionMiddleware(context, LocationService.dummy(), applicationScope = scope),
                 FileUploadsDirCleanerMiddleware(fileUploadsDirCleaner),
                 speedDialSnapshots(thumbnails, speedDialHosts),
+                tabThumbnails.middleware,
                 ThumbnailsMiddleware(thumbnails),
                 consumeSaveToPdfResults,
                 DownloadMiddleware(context, DownloadService::class.java, { false }, downloadFileUtils),

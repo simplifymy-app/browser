@@ -12,7 +12,16 @@ import app.simplifymy.browser.core.search.selectSearchEngine
 import app.simplifymy.browser.core.search.selectedId
 import app.simplifymy.browser.core.settings.BrowserSettings
 import app.simplifymy.browser.core.settings.ToolbarPosition
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.withContext
+import mozilla.components.concept.engine.EngineView
+import mozilla.components.concept.fetch.Request
+import mozilla.components.feature.search.suggestions.SearchSuggestionClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -72,7 +81,11 @@ data class BrowserUiState(
     val speedDial get() = url.isEmpty() && selectedTabId != null
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+private const val SUGGESTION_DEBOUNCE_MS = 120L
+private const val HISTORY_SUGGESTIONS = 4
+private const val SEARCH_SUGGESTIONS = 5
+
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class BrowserViewModel(private val components: Components) : ViewModel() {
 
     private val store = components.store
@@ -97,6 +110,44 @@ class BrowserViewModel(private val components: Components) : ViewModel() {
 
     val settings: StateFlow<BrowserSettings> =
         components.settings.settings.stateIn(viewModelScope, SharingStarted.Eagerly, BrowserSettings())
+
+    private val query = MutableStateFlow("")
+
+    val completion: StateFlow<Completion?> = query
+        .mapLatest { text ->
+            if (text.isBlank()) return@mapLatest null
+            components.history.getAutocompleteSuggestion(text)?.let { Completion(text, it.text) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val suggestions: StateFlow<List<Suggestion>> = combine(query, settings.map { it.searchSuggestions }.distinctUntilChanged()) { text, search -> text.trim() to search }
+        .debounce(SUGGESTION_DEBOUNCE_MS)
+        .mapLatest { (text, search) -> if (text.isEmpty()) emptyList() else suggest(text, search) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun setQuery(text: String) {
+        query.value = text
+    }
+
+    private suspend fun suggest(text: String, search: Boolean): List<Suggestion> = coroutineScope {
+        val private = store.state.selectedTab?.content?.private == true
+        val engine = store.state.search.selectedOrDefaultSearchEngine
+        val searches = async {
+            if (!search || private || engine == null) return@async emptyList()
+            runCatching { SearchSuggestionClient(engine, ::fetchText).getSuggestions(text) }.getOrNull().orEmpty()
+        }
+        val pages = withContext(Dispatchers.IO) {
+            runCatching { components.history.getSuggestions(text, HISTORY_SUGGESTIONS) }.getOrDefault(emptyList())
+        }
+        pages.distinctBy { it.url }.map { Suggestion.Page(it.title.orEmpty(), it.url) } +
+            searches.await().filterNot { it.equals(text, ignoreCase = true) }.take(SEARCH_SUGGESTIONS).map { Suggestion.Search(it) }
+    }
+
+    private suspend fun fetchText(url: String): String? = withContext(Dispatchers.IO) {
+        components.client.fetch(Request(url)).use { response -> response.body.string().takeIf { response.status in 200..299 } }
+    }
+
+    fun captureThumbnail(engineView: EngineView) = components.tabThumbnails.capture(engineView, store)
 
     init {
         viewModelScope.launch {

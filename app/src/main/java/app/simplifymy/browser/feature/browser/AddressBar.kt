@@ -45,7 +45,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,6 +60,7 @@ import app.simplifymy.browser.ui.theme.BrowserTheme
 import app.simplifymy.browser.ui.theme.Radius
 import app.simplifymy.browser.ui.theme.Sizes
 import app.simplifymy.browser.ui.theme.Space
+import app.simplifymy.browser.ui.theme.States
 import mozilla.components.browser.state.search.SearchEngine
 import mozilla.components.support.ktx.kotlin.tryGetHostFromUrl
 
@@ -64,8 +68,12 @@ import mozilla.components.support.ktx.kotlin.tryGetHostFromUrl
 fun AddressBar(
     url: String,
     searchIcon: Bitmap?,
+    editing: Boolean,
+    onEditingChange: (Boolean) -> Unit,
     onSubmit: (String) -> Unit,
     modifier: Modifier = Modifier,
+    completion: Completion? = null,
+    onQueryChange: (String) -> Unit = {},
     private: Boolean = false,
     loading: Boolean = false,
     onStop: () -> Unit = {},
@@ -75,13 +83,12 @@ fun AddressBar(
     searchEngineId: String? = null,
     onSelectEngine: (SearchEngine) -> Unit = {},
 ) {
-    var editing by remember { mutableStateOf(false) }
     Row(
         modifier = modifier
             .height(Sizes.dropdown)
             .clip(Radius.control)
             .background(BrowserTheme.colors.surface)
-            .clickable(enabled = !editing) { editing = true }
+            .clickable(enabled = !editing) { onEditingChange(true) }
             .padding(start = Space.gutter, end = Space.toolbarInset),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Space.gutter),
@@ -92,7 +99,7 @@ fun AddressBar(
             SecurityBadge(security, issuer, url.tryGetHostFromUrl())
         }
         if (editing) {
-            UrlField(url, onSubmit, onClose = { editing = false }, Modifier.weight(1f))
+            UrlField(url, completion, onQueryChange, onSubmit, onClose = { onEditingChange(false) }, Modifier.weight(1f))
         } else {
             if (private) {
                 Text(stringResource(R.string.private_label).uppercase(), style = BrowserTheme.type.section, color = BrowserTheme.colors.textMuted)
@@ -199,12 +206,23 @@ private fun SecurityBadge(security: Security, issuer: String, host: String) {
 }
 
 @Composable
-private fun UrlField(url: String, onSubmit: (String) -> Unit, onClose: () -> Unit, modifier: Modifier) {
+private fun UrlField(
+    url: String,
+    completion: Completion?,
+    onQueryChange: (String) -> Unit,
+    onSubmit: (String) -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier,
+) {
     val colors = BrowserTheme.colors
     val focusRequester = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     var input by remember { mutableStateOf(TextFieldValue(url, TextRange(0, url.length))) }
+    var autocomplete by remember { mutableStateOf(false) }
     var focused by remember { mutableStateOf(false) }
+    val suffix = completionSuffix(input, completion).takeIf { autocomplete }
+    val highlight = colors.accent.copy(alpha = States.SELECTED)
+    val transformation = remember(suffix, highlight) { suffix?.let { CompletionTransformation(it, highlight) } ?: VisualTransformation.None }
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -214,13 +232,20 @@ private fun UrlField(url: String, onSubmit: (String) -> Unit, onClose: () -> Uni
 
     BasicTextField(
         value = input,
-        onValueChange = { input = it },
+        onValueChange = { value ->
+            if (value.text != input.text) {
+                autocomplete = value.text.length > input.text.length
+                onQueryChange(value.text)
+            }
+            input = value
+        },
         singleLine = true,
         textStyle = BrowserTheme.type.value.copy(color = colors.text),
         cursorBrush = SolidColor(colors.accent),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
+        visualTransformation = transformation,
+        keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
         keyboardActions = KeyboardActions(onGo = {
-            onSubmit(input.text)
+            onSubmit(input.text + suffix.orEmpty())
             onClose()
         }),
         modifier = modifier
@@ -230,6 +255,28 @@ private fun UrlField(url: String, onSubmit: (String) -> Unit, onClose: () -> Uni
                 focused = it.isFocused
             },
     )
+}
+
+private fun completionSuffix(input: TextFieldValue, completion: Completion?): String? {
+    val text = completion?.text ?: return null
+    val typed = input.text
+    val atEnd = input.selection.collapsed && input.selection.end == typed.length
+    if (!atEnd || completion.input != typed || text.length <= typed.length || !text.startsWith(typed, ignoreCase = true)) return null
+    return text.drop(typed.length)
+}
+
+private class CompletionTransformation(private val suffix: String, private val highlight: Color) : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val length = text.length
+        val shown = buildAnnotatedString {
+            append(text)
+            withStyle(SpanStyle(background = highlight)) { append(suffix) }
+        }
+        return TransformedText(shown, object : OffsetMapping {
+            override fun originalToTransformed(offset: Int) = offset
+            override fun transformedToOriginal(offset: Int) = offset.coerceAtMost(length)
+        })
+    }
 }
 
 @Composable
@@ -269,7 +316,7 @@ private fun SearchEngineIcon(icon: Bitmap?) {
 @Composable
 private fun AddressBarPreview() {
     BrowserTheme {
-        AddressBar(url = "https://example.com/page", searchIcon = null, onSubmit = {}, modifier = Modifier.fillMaxWidth())
+        AddressBar(url = "https://example.com/page", searchIcon = null, editing = false, onEditingChange = {}, onSubmit = {}, modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -277,6 +324,6 @@ private fun AddressBarPreview() {
 @Composable
 private fun AddressBarPrivatePreview() {
     BrowserTheme {
-        AddressBar(url = "", searchIcon = null, onSubmit = {}, modifier = Modifier.fillMaxWidth(), private = true, loading = true)
+        AddressBar(url = "", searchIcon = null, editing = false, onEditingChange = {}, onSubmit = {}, modifier = Modifier.fillMaxWidth(), private = true, loading = true)
     }
 }

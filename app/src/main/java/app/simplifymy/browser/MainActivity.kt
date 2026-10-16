@@ -120,6 +120,7 @@ class MainActivity : AppCompatActivity() {
             favicon = components::siteIcon,
             thumbnail = { id, private -> components.thumbnails.loadThumbnail(ImageLoadRequest(id, thumbnailSize, private)).await() },
             image = components.amo::image,
+            thumbnailVersions = components.tabThumbnails.versions,
         )
     }
 

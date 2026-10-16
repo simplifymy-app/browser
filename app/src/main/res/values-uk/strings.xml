@@ -124,4 +124,8 @@
     <string name="setting_tab_strip_hint">Показувати відкриті вкладки під панеллю</string>
     <string name="setting_hide_toolbar">Ховати панель під час прокручування</string>
     <string name="setting_hide_toolbar_hint">Прокрутіть угору, щоб повернути її</string>
+    <string name="setting_restore_tabs">Відновлювати вкладки</string>
+    <string name="setting_restore_tabs_hint">Знову відкривати вкладки під час запуску браузера</string>
+    <string name="setting_search_suggestions">Пошукові підказки</string>
+    <string name="setting_search_suggestions_hint">Запитувати підказки в пошукової системи під час введення. Вимкнено в приватних вкладках</string>
 </resources>
