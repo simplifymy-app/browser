@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
+import app.simplifymy.browser.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
@@ -104,6 +106,16 @@ fun BrowserScreen(engineView: EngineView) {
         exit = { activity?.finishAndRemoveTask() },
     )
 
+    val started = stringResource(R.string.download_started)
+    val finished = stringResource(R.string.download_finished)
+    LaunchedEffect(viewModel) {
+        viewModel.downloadNotices.collect {
+            notice = when (it) {
+                is DownloadNotice.Started -> started.format(it.fileName)
+                is DownloadNotice.Finished -> finished.format(it.fileName)
+            }
+        }
+    }
     LaunchedEffect(settings.themeMode) { AppCompatDelegate.setDefaultNightMode(settings.themeMode.nightMode()) }
     BrowserTheme(
         mode = if (state.private) ThemeMode.Black else settings.themeMode,

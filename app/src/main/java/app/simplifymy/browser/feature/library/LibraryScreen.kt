@@ -8,6 +8,10 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -70,7 +74,7 @@ fun LibraryContent(
     start: LibrarySection,
     bookmarks: List<LibraryEntry>,
     history: List<LibraryEntry>,
-    downloads: List<DownloadState>,
+    downloads: List<DownloadItem>,
     onBack: () -> Unit,
     onOpen: (String) -> Unit,
     onDeleteBookmark: (LibraryEntry) -> Unit,
@@ -105,7 +109,7 @@ fun LibraryContent(
                 }
                 LibrarySection.Downloads -> {
                     if (downloads.isEmpty()) item { EmptyState(stringResource(R.string.library_empty)) }
-                    items(downloads, key = { it.id }) { download -> DownloadRow(download, onOpenDownloads) }
+                    items(downloads, key = { it.state.id }) { download -> DownloadRow(download, onOpenDownloads) }
                 }
             }
         }
@@ -125,15 +129,46 @@ private fun EntryRow(entry: LibraryEntry, onOpen: (String) -> Unit, onDelete: (L
 }
 
 @Composable
-private fun DownloadRow(download: DownloadState, onClick: () -> Unit) {
+private fun DownloadRow(item: DownloadItem, onClick: () -> Unit) {
+    val download = item.state
+    val colors = BrowserTheme.colors
+    val downloading = download.status == DownloadState.Status.DOWNLOADING
+    val total = download.contentLength?.takeIf { it > 0 }
+    Column {
+        ListRow(
+            title = download.fileName ?: download.url,
+            subtitle = downloadSubtitle(item),
+            onClick = onClick,
+            leading = { IconAction(BrowserIcons.Download, download.fileName.orEmpty(), onClick, tint = colors.textMuted) },
+        )
+        if (downloading && total != null) {
+            val fraction = (download.currentBytesCopied.toFloat() / total).coerceIn(0f, 1f)
+            Canvas(Modifier.fillMaxWidth().padding(horizontal = Space.screen).padding(bottom = Space.base).height(2.dp)) {
+                drawRect(colors.hairline)
+                drawRect(colors.accent, size = size.copy(width = size.width * fraction))
+            }
+        }
+    }
+}
+
+@Composable
+private fun downloadSubtitle(item: DownloadItem): String {
     val context = LocalContext.current
-    val size = download.contentLength?.let { Formatter.formatShortFileSize(context, it) }
-    ListRow(
-        title = download.fileName ?: download.url,
-        subtitle = listOfNotNull(stringResource(download.status.labelRes()), size).joinToString(" · "),
-        onClick = onClick,
-        leading = { IconAction(BrowserIcons.Download, download.fileName.orEmpty(), onClick, tint = BrowserTheme.colors.textMuted) },
-    )
+    val download = item.state
+    fun bytes(value: Long) = Formatter.formatShortFileSize(context, value)
+    val total = download.contentLength?.takeIf { it > 0 }
+    val parts = when (download.status) {
+        DownloadState.Status.DOWNLOADING -> listOfNotNull(
+            if (total != null) stringResource(R.string.download_progress, bytes(download.currentBytesCopied), bytes(total)) else bytes(download.currentBytesCopied),
+            item.bytesPerSecond?.let { stringResource(R.string.download_speed, bytes(it)) },
+        )
+        DownloadState.Status.PAUSED -> listOfNotNull(
+            stringResource(download.status.labelRes()),
+            if (total != null) stringResource(R.string.download_progress, bytes(download.currentBytesCopied), bytes(total)) else null,
+        )
+        else -> listOfNotNull(stringResource(download.status.labelRes()), total?.let(::bytes))
+    }
+    return parts.joinToString(" · ")
 }
 
 private fun DownloadState.Status.labelRes() = when (this) {

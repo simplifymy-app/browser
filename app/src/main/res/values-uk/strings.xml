@@ -58,6 +58,10 @@
     <string name="download_cancelled">Скасовано</string>
     <string name="download_failed">Помилка</string>
     <string name="download_completed">Завершено</string>
+    <string name="download_progress">%1$s з %2$s</string>
+    <string name="download_speed">%1$s/с</string>
+    <string name="download_started">Завантаження %1$s</string>
+    <string name="download_finished">Завантажено %1$s</string>
     <string name="mode_auto">Авто</string>
     <string name="mode_light">Світла</string>
     <string name="mode_dark">Темна</string>

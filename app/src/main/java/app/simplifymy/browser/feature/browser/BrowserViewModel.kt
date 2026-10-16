@@ -1,6 +1,7 @@
 package app.simplifymy.browser.feature.browser
 
 import android.graphics.Bitmap
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.simplifymy.browser.Components
@@ -17,7 +18,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.runningFold
+import mozilla.components.browser.state.state.content.DownloadState
 import kotlinx.coroutines.withContext
 import mozilla.components.concept.engine.EngineView
 import mozilla.components.concept.fetch.Request
@@ -55,6 +61,15 @@ data class TabItem(
 }
 
 enum class Security { Secure, Insecure, Unknown }
+
+sealed interface DownloadNotice {
+    val fileName: String
+
+    data class Started(override val fileName: String) : DownloadNotice
+    data class Finished(override val fileName: String) : DownloadNotice
+}
+
+private val ACTIVE_DOWNLOAD = setOf(DownloadState.Status.INITIATED, DownloadState.Status.DOWNLOADING)
 
 data class ExtensionAction(val id: String, val title: String, val action: Action)
 
@@ -145,6 +160,24 @@ class BrowserViewModel(private val components: Components) : ViewModel() {
 
     private suspend fun fetchText(url: String): String? = withContext(Dispatchers.IO) {
         components.client.fetch(Request(url)).use { response -> response.body.string().takeIf { response.status in 200..299 } }
+    }
+
+    val downloadNotices: Flow<DownloadNotice> = store.flow()
+        .map { state -> state.downloads.values.associate { it.id to it } }
+        .distinctUntilChanged()
+        .runningFold<Map<String, DownloadState>, Pair<Map<String, DownloadState>?, List<DownloadNotice>>>(null to emptyList()) { (seen, _), downloads ->
+            downloads to seen?.let { downloadNotices(it, downloads) }.orEmpty()
+        }
+        .flatMapConcat { it.second.asFlow() }
+
+    private fun downloadNotices(before: Map<String, DownloadState>, now: Map<String, DownloadState>) = now.values.mapNotNull { download ->
+        val name = download.fileName ?: download.url.toUri().lastPathSegment ?: download.url
+        val previous = before[download.id]?.status
+        when {
+            previous == null && download.status in ACTIVE_DOWNLOAD -> DownloadNotice.Started(name)
+            previous != null && previous != DownloadState.Status.COMPLETED && download.status == DownloadState.Status.COMPLETED -> DownloadNotice.Finished(name)
+            else -> null
+        }
     }
 
     fun captureThumbnail(engineView: EngineView) = components.tabThumbnails.capture(engineView, store)

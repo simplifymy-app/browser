@@ -58,6 +58,10 @@
     <string name="download_cancelled">Annulé</string>
     <string name="download_failed">Échec</string>
     <string name="download_completed">Terminé</string>
+    <string name="download_progress">%1$s sur %2$s</string>
+    <string name="download_speed">%1$s/s</string>
+    <string name="download_started">Téléchargement de %1$s</string>
+    <string name="download_finished">%1$s téléchargé</string>
     <string name="mode_auto">Auto</string>
     <string name="mode_light">Clair</string>
     <string name="mode_dark">Sombre</string>
