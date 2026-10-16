@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.Browser" parent="Theme.Browser.Base">
+        <item name="android:windowSplashScreenBackground">@color/background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+    </style>
+</resources>

@@ -1,0 +1,42 @@
+<resources>
+    <style name="Theme.Browser.Base" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">@color/on_accent</item>
+        <item name="colorSurface">@color/surface_alt</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_alt</item>
+        <item name="colorSurfaceContainerLow">@color/surface_alt</item>
+        <item name="colorOnSurface">@color/text</item>
+        <item name="colorOnSurfaceVariant">@color/text_muted</item>
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorOutline">@color/hairline</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="android:textColorSecondary">@color/text_muted</item>
+        <item name="android:textColorLink">@color/accent</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="materialButtonStyle">@style/Widget.Browser.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Browser.Button.Outlined</item>
+        <item name="shapeAppearanceCornerExtraLarge">@style/ShapeAppearance.Browser.Sheet</item>
+    </style>
+
+    <style name="Widget.Browser.Button" parent="Widget.Material3.Button">
+        <item name="shapeAppearance">@style/ShapeAppearance.Browser.Control</item>
+    </style>
+
+    <style name="Widget.Browser.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="shapeAppearance">@style/ShapeAppearance.Browser.Control</item>
+    </style>
+
+    <style name="ShapeAppearance.Browser.Control" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">4dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Browser.Sheet" parent="ShapeAppearance.Material3.Corner.ExtraLarge">
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <style name="Theme.Browser" parent="Theme.Browser.Base" />
+</resources>

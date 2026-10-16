@@ -1,0 +1,15 @@
+local.properties
+.gradle/
+.kotlin/
+build/
+*.iml
+.idea/
+.DS_Store
+design
+!.run/
+dist/
+screenshot.png
+keystore.properties
+*.jks
+*.md
+!README.md

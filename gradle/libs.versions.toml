@@ -1,0 +1,73 @@
+[versions]
+agp = "9.4.1"
+kotlin = "2.4.21"
+ksp = "2.3.12"
+room = "2.8.5"
+composeBom = "2026.09.00"
+coreKtx = "1.19.1"
+activityCompose = "1.13.0"
+lifecycle = "2.11.0"
+appcompat = "1.8.0"
+material = "1.14.0"
+datastore = "1.2.1"
+mozilla = "158.0"
+
+compileSdk = "37"
+compileSdkMinor = "2"
+minSdk = "26"
+targetSdk = "37"
+
+[libraries]
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+
+mozilla-browser-engine-gecko = { module = "org.mozilla.components:browser-engine-gecko", version.ref = "mozilla" }
+mozilla-browser-icons = { module = "org.mozilla.components:browser-icons", version.ref = "mozilla" }
+mozilla-browser-session-storage = { module = "org.mozilla.components:browser-session-storage", version.ref = "mozilla" }
+mozilla-browser-state = { module = "org.mozilla.components:browser-state", version.ref = "mozilla" }
+mozilla-browser-storage-sync = { module = "org.mozilla.components:browser-storage-sync", version.ref = "mozilla" }
+mozilla-browser-thumbnails = { module = "org.mozilla.components:browser-thumbnails", version.ref = "mozilla" }
+mozilla-concept-base = { module = "org.mozilla.components:concept-base", version.ref = "mozilla" }
+mozilla-concept-engine = { module = "org.mozilla.components:concept-engine", version.ref = "mozilla" }
+mozilla-concept-fetch = { module = "org.mozilla.components:concept-fetch", version.ref = "mozilla" }
+mozilla-concept-toolbar = { module = "org.mozilla.components:concept-toolbar", version.ref = "mozilla" }
+mozilla-concept-storage = { module = "org.mozilla.components:concept-storage", version.ref = "mozilla" }
+mozilla-feature-addons = { module = "org.mozilla.components:feature-addons", version.ref = "mozilla" }
+mozilla-feature-contextmenu = { module = "org.mozilla.components:feature-contextmenu", version.ref = "mozilla" }
+mozilla-feature-downloads = { module = "org.mozilla.components:feature-downloads", version.ref = "mozilla" }
+mozilla-feature-prompts = { module = "org.mozilla.components:feature-prompts", version.ref = "mozilla" }
+mozilla-feature-search = { module = "org.mozilla.components:feature-search", version.ref = "mozilla" }
+mozilla-feature-session = { module = "org.mozilla.components:feature-session", version.ref = "mozilla" }
+mozilla-feature-sitepermissions = { module = "org.mozilla.components:feature-sitepermissions", version.ref = "mozilla" }
+mozilla-feature-tabs = { module = "org.mozilla.components:feature-tabs", version.ref = "mozilla" }
+mozilla-lib-state = { module = "org.mozilla.components:lib-state", version.ref = "mozilla" }
+mozilla-service-location = { module = "org.mozilla.components:service-location", version.ref = "mozilla" }
+mozilla-support-base = { module = "org.mozilla.components:support-base", version.ref = "mozilla" }
+mozilla-support-ktx = { module = "org.mozilla.components:support-ktx", version.ref = "mozilla" }
+mozilla-support-utils = { module = "org.mozilla.components:support-utils", version.ref = "mozilla" }
+mozilla-support-webextensions = { module = "org.mozilla.components:support-webextensions", version.ref = "mozilla" }
+
+[bundles]
+room = ["androidx-room-runtime", "androidx-room-ktx"]
+compose = ["compose-ui", "compose-ui-graphics", "compose-ui-tooling-preview", "compose-material3"]
+mozilla = ["mozilla-browser-engine-gecko", "mozilla-browser-icons", "mozilla-browser-session-storage", "mozilla-browser-state", "mozilla-browser-storage-sync", "mozilla-browser-thumbnails", "mozilla-concept-base", "mozilla-concept-engine", "mozilla-concept-fetch", "mozilla-concept-storage", "mozilla-concept-toolbar", "mozilla-feature-addons", "mozilla-feature-contextmenu", "mozilla-feature-downloads", "mozilla-feature-prompts", "mozilla-feature-search", "mozilla-feature-session", "mozilla-feature-sitepermissions", "mozilla-feature-tabs", "mozilla-lib-state", "mozilla-service-location", "mozilla-support-base", "mozilla-support-ktx", "mozilla-support-utils", "mozilla-support-webextensions"]
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

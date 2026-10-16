@@ -1,0 +1,9 @@
+<resources>
+    <color name="background">#FFFFFF</color>
+    <color name="surface_alt">#EDEDEF</color>
+    <color name="text">#131315</color>
+    <color name="text_muted">#5E5E66</color>
+    <color name="accent">#4A5FE0</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="hairline">#E3E3E6</color>
+</resources>
