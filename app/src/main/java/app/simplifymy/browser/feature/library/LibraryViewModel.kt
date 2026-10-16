@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import app.simplifymy.browser.Components
 import app.simplifymy.browser.core.backup.MOBILE_BOOKMARKS
 import app.simplifymy.browser.componentsFactory
+import app.simplifymy.browser.core.history.HistoryPeriod
+import app.simplifymy.browser.core.history.clear
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -82,9 +84,9 @@ class LibraryViewModel(private val components: Components) : ViewModel() {
         }
     }
 
-    fun clearHistory() {
+    fun clearHistory(period: HistoryPeriod) {
         viewModelScope.launch {
-            components.history.deleteEverything()
+            components.history.clear(period)
             load()
         }
     }

@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import app.simplifymy.browser.Components
 import app.simplifymy.browser.componentsFactory
 import app.simplifymy.browser.core.backup.BackupCounts
+import app.simplifymy.browser.core.history.HistoryPeriod
+import app.simplifymy.browser.core.history.clear
 import app.simplifymy.browser.core.search.choices
 import app.simplifymy.browser.core.search.selectSearchEngine
 import app.simplifymy.browser.core.search.selectedId
@@ -62,9 +64,9 @@ class SettingsViewModel(private val components: Components) : ViewModel() {
 
     fun selectSearchEngine(engine: SearchEngine) = components.store.selectSearchEngine(engine)
 
-    fun clearData(history: Boolean, siteData: Boolean, cache: Boolean) {
+    fun clearData(history: HistoryPeriod?, siteData: Boolean, cache: Boolean) {
         viewModelScope.launch {
-            if (history) components.history.deleteEverything()
+            history?.let { components.history.clear(it) }
             val types = listOfNotNull(
                 Engine.BrowsingData.ALL_SITE_DATA.takeIf { siteData },
                 Engine.BrowsingData.ALL_CACHES.takeIf { cache },

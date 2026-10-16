@@ -92,6 +92,13 @@
     <string name="clear_history">Histórico de navegação</string>
     <string name="clear_site_data">Cookies e dados de sites</string>
     <string name="clear_cache">Imagens e ficheiros em cache</string>
+    <string name="clear_period">Intervalo de tempo</string>
+    <string name="period_last_hour">Última hora</string>
+    <string name="period_today">Hoje</string>
+    <string name="period_last_week">Última semana</string>
+    <string name="period_last_month">Último mês</string>
+    <string name="period_last_year">Último ano</string>
+    <string name="period_all">Sempre</string>
     <string name="action_clear">Limpar</string>
     <string name="setting_version">Versão</string>
     <string name="setting_engine">Motor</string>

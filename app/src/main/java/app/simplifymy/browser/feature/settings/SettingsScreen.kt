@@ -24,6 +24,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.simplifymy.browser.R
+import app.simplifymy.browser.core.history.HistoryPeriod
+import app.simplifymy.browser.feature.library.HistoryPeriodSetting
 import app.simplifymy.browser.core.settings.BrowserSettings
 import app.simplifymy.browser.core.settings.Language
 import app.simplifymy.browser.core.settings.SPEED_DIAL_COLUMNS
@@ -97,7 +99,7 @@ fun SettingsContent(
     engines: SearchEngines,
     update: (suspend SettingsRepository.() -> Unit) -> Unit,
     onSelectEngine: (String) -> Unit,
-    onClearData: (history: Boolean, siteData: Boolean, cache: Boolean) -> Unit,
+    onClearData: (history: HistoryPeriod?, siteData: Boolean, cache: Boolean) -> Unit,
     onOpenUrl: (String) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -241,18 +243,20 @@ fun SettingsContent(
 }
 
 @Composable
-private fun ClearDataDialog(onDismiss: () -> Unit, onClear: (Boolean, Boolean, Boolean) -> Unit) {
+private fun ClearDataDialog(onDismiss: () -> Unit, onClear: (HistoryPeriod?, Boolean, Boolean) -> Unit) {
     var history by remember { mutableStateOf(true) }
+    var period by remember { mutableStateOf(HistoryPeriod.All) }
     var siteData by remember { mutableStateOf(true) }
     var cache by remember { mutableStateOf(true) }
     BrowserDialog(
         title = stringResource(R.string.setting_clear_data),
         onDismiss = onDismiss,
         confirmLabel = stringResource(R.string.action_clear),
-        onConfirm = { onClear(history, siteData, cache) },
+        onConfirm = { onClear(period.takeIf { history }, siteData, cache) },
         dismissLabel = stringResource(R.string.action_cancel),
     ) {
         ToggleSetting(stringResource(R.string.clear_history), history, { history = it })
+        if (history) HistoryPeriodSetting(period) { period = it }
         ToggleSetting(stringResource(R.string.clear_site_data), siteData, { siteData = it })
         ToggleSetting(stringResource(R.string.clear_cache), cache, { cache = it })
     }

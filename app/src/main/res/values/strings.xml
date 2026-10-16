@@ -92,6 +92,13 @@
     <string name="clear_history">Browsing history</string>
     <string name="clear_site_data">Cookies and site data</string>
     <string name="clear_cache">Cached images and files</string>
+    <string name="clear_period">Time range</string>
+    <string name="period_last_hour">Last hour</string>
+    <string name="period_today">Today</string>
+    <string name="period_last_week">Last week</string>
+    <string name="period_last_month">Last month</string>
+    <string name="period_last_year">Last year</string>
+    <string name="period_all">All time</string>
     <string name="action_clear">Clear</string>
     <string name="setting_version">Version</string>
     <string name="setting_engine">Engine</string>

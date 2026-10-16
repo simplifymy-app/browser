@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.simplifymy.browser.R
+import app.simplifymy.browser.core.history.HistoryPeriod
 import app.simplifymy.browser.ui.component.BrowserIcons
 import app.simplifymy.browser.ui.component.EmptyState
 import app.simplifymy.browser.ui.component.Favicon
@@ -79,14 +80,16 @@ fun LibraryContent(
     onOpen: (String) -> Unit,
     onDeleteBookmark: (LibraryEntry) -> Unit,
     onDeleteHistory: (LibraryEntry) -> Unit,
-    onClearHistory: () -> Unit,
+    onClearHistory: (HistoryPeriod) -> Unit,
     onOpenDownloads: () -> Unit,
 ) {
     var section by remember { mutableStateOf(start) }
+    var clearing by remember { mutableStateOf(false) }
+    if (clearing) ClearHistoryDialog(onDismiss = { clearing = false }, onClear = { onClearHistory(it); clearing = false })
     Screen(Modifier.fillMaxSize()) {
         ScreenHeader(stringResource(section.labelRes), onBack) {
             when (section) {
-                LibrarySection.History -> IconAction(BrowserIcons.Delete, stringResource(R.string.history_clear), onClearHistory, enabled = history.isNotEmpty())
+                LibrarySection.History -> IconAction(BrowserIcons.Delete, stringResource(R.string.history_clear), { clearing = true }, enabled = history.isNotEmpty())
                 LibrarySection.Downloads -> IconAction(BrowserIcons.Download, stringResource(R.string.downloads_system), onOpenDownloads)
                 LibrarySection.Bookmarks -> Unit
             }

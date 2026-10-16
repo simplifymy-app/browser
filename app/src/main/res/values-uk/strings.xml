@@ -92,6 +92,13 @@
     <string name="clear_history">Історія перегляду</string>
     <string name="clear_site_data">Файли cookie і дані сайтів</string>
     <string name="clear_cache">Кешовані зображення та файли</string>
+    <string name="clear_period">Період</string>
+    <string name="period_last_hour">Остання година</string>
+    <string name="period_today">Сьогодні</string>
+    <string name="period_last_week">Останній тиждень</string>
+    <string name="period_last_month">Останній місяць</string>
+    <string name="period_last_year">Останній рік</string>
+    <string name="period_all">За весь час</string>
     <string name="action_clear">Очистити</string>
     <string name="setting_version">Версія</string>
     <string name="setting_engine">Рушій</string>
