@@ -2,6 +2,7 @@ package app.simplifymy.browser
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import androidx.activity.addCallback
@@ -10,6 +11,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import app.simplifymy.browser.feature.browser.BrowserScreen
@@ -22,6 +26,7 @@ import mozilla.components.feature.contextmenu.ContextMenuFeature
 import mozilla.components.feature.downloads.DownloadsFeature
 import mozilla.components.feature.downloads.manager.FetchDownloadManager
 import mozilla.components.feature.prompts.PromptFeature
+import mozilla.components.feature.session.FullScreenFeature
 import mozilla.components.feature.session.SessionFeature
 import mozilla.components.feature.sitepermissions.SitePermissionsFeature
 import mozilla.components.support.base.feature.LifecycleAwareFeature
@@ -46,6 +51,15 @@ class MainActivity : AppCompatActivity() {
             components.sessionUseCases.goBack,
             components.sessionUseCases.goForward,
             engineView,
+        )
+    }
+
+    private val fullScreenFeature by lazy {
+        FullScreenFeature(
+            store = components.store,
+            sessionUseCases = components.sessionUseCases,
+            viewportFitChanged = ::setDisplayCutoutMode,
+            fullScreenChanged = ::setSystemBarsHidden,
         )
     }
 
@@ -134,9 +148,9 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         components.notificationsDelegate.bindToActivity(this)
-        bind(sessionFeature, promptFeature, sitePermissionsFeature, downloadsFeature, contextMenuFeature, thumbnailsFeature)
+        bind(sessionFeature, fullScreenFeature, promptFeature, sitePermissionsFeature, downloadsFeature, contextMenuFeature, thumbnailsFeature)
         onBackPressedDispatcher.addCallback(this) {
-            if (promptFeature.onBackPressed() || sessionFeature.onBackPressed()) return@addCallback
+            if (fullScreenFeature.onBackPressed() || promptFeature.onBackPressed() || sessionFeature.onBackPressed()) return@addCallback
             isEnabled = false
             onBackPressedDispatcher.onBackPressed()
             isEnabled = true
@@ -146,6 +160,11 @@ class MainActivity : AppCompatActivity() {
                 BrowserScreen(engineView)
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        components.appIcons.flush()
     }
 
     override fun onDestroy() {
@@ -158,6 +177,19 @@ class MainActivity : AppCompatActivity() {
         if (!promptFeature.onActivityResult(requestCode, data, resultCode)) {
             @Suppress("DEPRECATION")
             super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
+    private fun setSystemBarsHidden(hidden: Boolean) {
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            if (hidden) hide(WindowInsetsCompat.Type.systemBars()) else show(WindowInsetsCompat.Type.systemBars())
+        }
+    }
+
+    private fun setDisplayCutoutMode(mode: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes = window.attributes.apply { layoutInDisplayCutoutMode = mode }
         }
     }
 

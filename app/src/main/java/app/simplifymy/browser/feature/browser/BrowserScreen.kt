@@ -166,6 +166,7 @@ fun BrowserScreen(engineView: EngineView) {
                     viewModel = viewModel(factory = LibraryViewModel.Factory),
                     start = overlay.section!!,
                     onOpen = { viewModel.open(it); close() },
+                    onNotice = { notice = it },
                     onBack = close,
                 )
             }
@@ -198,6 +199,7 @@ private fun BrowserChrome(
 ) {
     val top = state.position == ToolbarPosition.Top
     val chrome = rememberChromeVisibility(engineView, hideOnScroll, state.url)
+    val showChrome = chrome.present && !state.fullScreen
     var editing by remember { mutableStateOf(false) }
     val completion = viewModel.completion.collectAsStateWithLifecycle()
     val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
@@ -237,9 +239,9 @@ private fun BrowserChrome(
         Modifier
             .fillMaxSize()
             .background(BrowserTheme.colors.background)
-            .windowInsetsPadding(ChromeInsets),
+            .then(if (state.fullScreen) Modifier else Modifier.windowInsetsPadding(ChromeInsets)),
     ) {
-        if (top && chrome.present) {
+        if (top && showChrome) {
             Column(Modifier.graphicsLayer { alpha = chrome.alpha() }) {
                 if (showTabStrip) strip()
                 toolbar()
@@ -263,7 +265,7 @@ private fun BrowserChrome(
                 )
             }
         }
-        if (!top && chrome.present) {
+        if (!top && showChrome) {
             Column(Modifier.graphicsLayer { alpha = chrome.alpha() }) {
                 toolbar()
                 if (showTabStrip) strip()

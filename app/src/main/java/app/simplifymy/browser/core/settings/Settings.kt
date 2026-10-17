@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import app.simplifymy.browser.R
 import app.simplifymy.browser.ui.theme.Accent
+import app.simplifymy.browser.ui.theme.AppIcon
 import app.simplifymy.browser.ui.theme.Contrast
 import app.simplifymy.browser.ui.theme.CornerStyle
 import app.simplifymy.browser.ui.theme.InterfaceFamily
@@ -36,6 +37,7 @@ enum class ToolbarPosition(@StringRes val labelRes: Int) {
 data class BrowserSettings(
     val themeMode: ThemeMode = ThemeMode.System,
     val accent: Accent = Accent.Indigo,
+    val appIcon: AppIcon = AppIcon.Blue,
     val contrast: Contrast = Contrast.Normal,
     val corners: CornerStyle = CornerStyle.Default,
     val font: InterfaceFamily = InterfaceFamily.SpaceGrotesk,
@@ -56,6 +58,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("s
 private object Keys {
     val themeMode = stringPreferencesKey("theme_mode")
     val accent = stringPreferencesKey("accent")
+    val appIcon = stringPreferencesKey("app_icon")
     val contrast = stringPreferencesKey("contrast")
     val corners = stringPreferencesKey("corners")
     val font = stringPreferencesKey("font")
@@ -81,6 +84,7 @@ class SettingsRepository(private val context: Context) {
         BrowserSettings(
             themeMode = p.enum(Keys.themeMode, defaults.themeMode),
             accent = p.enum(Keys.accent, defaults.accent),
+            appIcon = p.enum(Keys.appIcon, defaults.appIcon),
             contrast = p.enum(Keys.contrast, defaults.contrast),
             corners = p.enum(Keys.corners, defaults.corners),
             font = p.enum(Keys.font, defaults.font),
@@ -99,6 +103,7 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setThemeMode(value: ThemeMode) = put(Keys.themeMode, value)
     suspend fun setAccent(value: Accent) = put(Keys.accent, value)
+    suspend fun setAppIcon(value: AppIcon) = put(Keys.appIcon, value)
     suspend fun setContrast(value: Contrast) = put(Keys.contrast, value)
     suspend fun setCorners(value: CornerStyle) = put(Keys.corners, value)
     suspend fun setFont(value: InterfaceFamily) = put(Keys.font, value)

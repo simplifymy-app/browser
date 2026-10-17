@@ -1,3 +1,8 @@
 <resources>
     <color name="ic_launcher_background">#0F62FE</color>
+    <color name="ic_launcher_background_carbon">#161616</color>
+    <color name="ic_launcher_background_purple">#8A3FFC</color>
+    <color name="ic_launcher_background_magenta">#D02670</color>
+    <color name="ic_launcher_background_teal">#009D9A</color>
+    <color name="ic_launcher_background_green">#198038</color>
 </resources>

@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-java@v4
         with:
@@ -45,10 +47,26 @@ jobs:
             if grep -q "CN=Android Debug" cert.txt; then echo "::error::$apk is signed with the debug key"; exit 1; fi
           done
 
+      - name: Write release notes from commit messages
+        run: |
+          previous=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          range="${previous:+$previous..}$GITHUB_REF_NAME"
+          for sha in $(git log --no-merges --format=%H "$range"); do
+            subject=$(git log -1 --format=%s "$sha")
+            case "$subject" in ci:*|docs:*) continue ;; esac
+            printf '### %s\n\n' "$(echo "${subject#*: }" | awk '{ print toupper(substr($0, 1, 1)) substr($0, 2) }')"
+            git log -1 --format=%b "$sha" | grep -v '^- Bump version to ' | sed 's/</\&lt;/g' || true
+            echo
+          done > notes.md
+          if [ -n "$previous" ]; then
+            echo "**Full changelog**: https://github.com/$GITHUB_REPOSITORY/compare/$previous...$GITHUB_REF_NAME" >> notes.md
+          fi
+          cat notes.md
+
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" dist/*.apk \
             --title "Browser ${GITHUB_REF_NAME} (experimental)" \
-            --generate-notes
+            --notes-file notes.md

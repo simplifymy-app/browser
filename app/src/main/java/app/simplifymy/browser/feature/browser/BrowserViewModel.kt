@@ -92,6 +92,7 @@ data class BrowserUiState(
     val privateTabs: List<TabItem> = emptyList(),
     val bookmarked: Boolean = false,
     val desktopMode: Boolean = false,
+    val fullScreen: Boolean = false,
 ) {
     val speedDial get() = url.isEmpty() && selectedTabId != null
 }
@@ -220,6 +221,7 @@ class BrowserViewModel(private val components: Components) : ViewModel() {
             privateTabs = browser.tabItems(true),
             bookmarked = bookmarked,
             desktopMode = content?.desktopMode == true,
+            fullScreen = content?.fullScreen == true,
         )
     }
         .distinctUntilChanged()

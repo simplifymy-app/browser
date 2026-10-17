@@ -60,6 +60,9 @@ class LibraryViewModel(private val components: Components) : ViewModel() {
         return rate?.toLong()
     }
 
+    fun openDownload(download: DownloadState): Boolean =
+        components.downloadFileUtils.openFile(download.fileName, download.directoryPath, download.contentType)
+
     fun load() {
         viewModelScope.launch {
             _bookmarks.value = components.bookmarks.getTree(MOBILE_BOOKMARKS).getOrNull()?.children.orEmpty()

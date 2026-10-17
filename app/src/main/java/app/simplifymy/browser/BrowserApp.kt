@@ -43,6 +43,7 @@ class BrowserApp : Application() {
                     store.dispatch(DefaultDesktopModeAction.DesktopModeUpdated(it))
                 }
             }
+            scope.launch { appIcons.request(settings.settings.first().appIcon) }
             scope.launch {
                 if (settings.settings.first().restoreTabs) tabsUseCases.restore(sessionStorage)
                 if (store.state.tabs.isEmpty()) tabsUseCases.addTab(SPEED_DIAL_URL)

@@ -11,6 +11,7 @@ import app.simplifymy.browser.core.database.TabThumbnails
 import app.simplifymy.browser.core.database.speedDialSnapshots
 import app.simplifymy.browser.core.icons.DeclaredIcons
 import app.simplifymy.browser.core.search.ADDITIONAL_SEARCH_ENGINES
+import app.simplifymy.browser.core.settings.AppIconManager
 import app.simplifymy.browser.core.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,6 +65,8 @@ class Components(private val context: Context) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     val settings by lazy { SettingsRepository(context) }
+
+    val appIcons by lazy { AppIconManager(context) }
 
     val database by lazy { BrowserDatabase.create(context) }
 

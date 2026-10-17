@@ -47,11 +47,18 @@ enum class LibrarySection(val labelRes: Int) {
 }
 
 @Composable
-fun LibraryScreen(viewModel: LibraryViewModel, start: LibrarySection, onOpen: (String) -> Unit, onBack: () -> Unit) {
+fun LibraryScreen(
+    viewModel: LibraryViewModel,
+    start: LibrarySection,
+    onOpen: (String) -> Unit,
+    onNotice: (String) -> Unit,
+    onBack: () -> Unit,
+) {
     val bookmarks by viewModel.bookmarks.collectAsStateWithLifecycle()
     val history by viewModel.history.collectAsStateWithLifecycle()
     val downloads by viewModel.downloads.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val noApp = stringResource(R.string.download_no_app)
     LaunchedEffect(Unit) { viewModel.load() }
     BackHandler(onBack = onBack)
     LibraryContent(
@@ -67,6 +74,7 @@ fun LibraryScreen(viewModel: LibraryViewModel, start: LibrarySection, onOpen: (S
         onOpenDownloads = {
             context.startActivity(Intent(DownloadManager.ACTION_VIEW_DOWNLOADS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         },
+        onOpenDownload = { if (!viewModel.openDownload(it)) onNotice(noApp) },
     )
 }
 
@@ -82,6 +90,7 @@ fun LibraryContent(
     onDeleteHistory: (LibraryEntry) -> Unit,
     onClearHistory: (HistoryPeriod) -> Unit,
     onOpenDownloads: () -> Unit,
+    onOpenDownload: (DownloadState) -> Unit,
 ) {
     var section by remember { mutableStateOf(start) }
     var clearing by remember { mutableStateOf(false) }
@@ -112,7 +121,7 @@ fun LibraryContent(
                 }
                 LibrarySection.Downloads -> {
                     if (downloads.isEmpty()) item { EmptyState(stringResource(R.string.library_empty)) }
-                    items(downloads, key = { it.state.id }) { download -> DownloadRow(download, onOpenDownloads) }
+                    items(downloads, key = { it.state.id }) { download -> DownloadRow(download, onOpenDownload) }
                 }
             }
         }
@@ -132,17 +141,18 @@ private fun EntryRow(entry: LibraryEntry, onOpen: (String) -> Unit, onDelete: (L
 }
 
 @Composable
-private fun DownloadRow(item: DownloadItem, onClick: () -> Unit) {
+private fun DownloadRow(item: DownloadItem, onOpen: (DownloadState) -> Unit) {
     val download = item.state
     val colors = BrowserTheme.colors
     val downloading = download.status == DownloadState.Status.DOWNLOADING
     val total = download.contentLength?.takeIf { it > 0 }
+    val open = { onOpen(download) }.takeIf { download.status == DownloadState.Status.COMPLETED }
     Column {
         ListRow(
             title = download.fileName ?: download.url,
             subtitle = downloadSubtitle(item),
-            onClick = onClick,
-            leading = { IconAction(BrowserIcons.Download, download.fileName.orEmpty(), onClick, tint = colors.textMuted) },
+            onClick = open,
+            leading = { IconAction(BrowserIcons.Download, download.fileName.orEmpty(), open ?: {}, tint = colors.textMuted) },
         )
         if (downloading && total != null) {
             val fraction = (download.currentBytesCopied.toFloat() / total).coerceIn(0f, 1f)
@@ -197,6 +207,7 @@ private fun LibraryContentPreview() {
             onDeleteHistory = {},
             onClearHistory = {},
             onOpenDownloads = {},
+            onOpenDownload = {},
         )
     }
 }

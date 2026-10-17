@@ -62,6 +62,7 @@
     <string name="download_speed">%1$s/s</string>
     <string name="download_started">Downloading %1$s</string>
     <string name="download_finished">Downloaded %1$s</string>
+    <string name="download_no_app">No app can open this file</string>
     <string name="mode_auto">Auto</string>
     <string name="mode_light">Light</string>
     <string name="mode_dark">Dark</string>
@@ -82,6 +83,14 @@
     <string name="setting_menu_density">Menu spacing</string>
     <string name="setting_mode">Mode</string>
     <string name="setting_accent">Accent</string>
+    <string name="setting_app_icon">App icon</string>
+    <string name="setting_app_icon_hint">Applied when you leave the app</string>
+    <string name="icon_carbon">Carbon</string>
+    <string name="icon_blue">Blue</string>
+    <string name="icon_purple">Purple</string>
+    <string name="icon_magenta">Magenta</string>
+    <string name="icon_teal">Teal</string>
+    <string name="icon_green">Green</string>
     <string name="setting_contrast">Contrast</string>
     <string name="setting_corner_radius">Corner radius</string>
     <string name="setting_font">Font</string>

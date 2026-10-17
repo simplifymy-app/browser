@@ -32,6 +32,7 @@ import app.simplifymy.browser.core.settings.SPEED_DIAL_COLUMNS
 import app.simplifymy.browser.core.settings.SettingsRepository
 import app.simplifymy.browser.core.settings.SpeedDialStyle
 import app.simplifymy.browser.core.settings.ToolbarPosition
+import app.simplifymy.browser.ui.component.AppIconSetting
 import app.simplifymy.browser.ui.component.BrowserDialog
 import app.simplifymy.browser.ui.component.DropdownSetting
 import app.simplifymy.browser.ui.component.LinkSetting
@@ -46,6 +47,7 @@ import app.simplifymy.browser.ui.component.SwatchSetting
 import app.simplifymy.browser.ui.component.ToggleSetting
 import app.simplifymy.browser.ui.component.ValueSetting
 import app.simplifymy.browser.ui.theme.Accent
+import app.simplifymy.browser.ui.theme.AppIcon
 import app.simplifymy.browser.ui.theme.BrowserTheme
 import app.simplifymy.browser.ui.theme.Contrast
 import app.simplifymy.browser.ui.theme.CornerStyle
@@ -83,6 +85,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onOpenUrl: (String) -> Unit, on
         engines = engines,
         update = viewModel::update,
         onSelectEngine = { id -> engines.choices.find { it.id == id }?.let(viewModel::selectSearchEngine) },
+        onSelectAppIcon = viewModel::setAppIcon,
         onClearData = viewModel::clearData,
         onOpenUrl = onOpenUrl,
         onBack = onBack,
@@ -99,6 +102,7 @@ fun SettingsContent(
     engines: SearchEngines,
     update: (suspend SettingsRepository.() -> Unit) -> Unit,
     onSelectEngine: (String) -> Unit,
+    onSelectAppIcon: (AppIcon) -> Unit,
     onClearData: (history: HistoryPeriod?, siteData: Boolean, cache: Boolean) -> Unit,
     onOpenUrl: (String) -> Unit,
     onBack: () -> Unit,
@@ -192,6 +196,10 @@ fun SettingsContent(
                     }
                 }
 
+                SettingsSection(stringResource(R.string.setting_app_icon)) {
+                    AppIconSetting(settings.appIcon, stringResource(R.string.setting_app_icon_hint), onSelectAppIcon)
+                }
+
                 SettingsSection(stringResource(R.string.section_typography)) {
                     DropdownSetting(
                         label = stringResource(R.string.setting_font),
@@ -275,6 +283,7 @@ private fun SettingsContentPreview() {
             engines = SearchEngines(),
             update = {},
             onSelectEngine = {},
+            onSelectAppIcon = {},
             onClearData = { _, _, _ -> },
             onOpenUrl = {},
             onBack = {},

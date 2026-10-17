@@ -13,6 +13,7 @@ import app.simplifymy.browser.core.search.selectSearchEngine
 import app.simplifymy.browser.core.search.selectedId
 import app.simplifymy.browser.core.settings.BrowserSettings
 import app.simplifymy.browser.core.settings.SettingsRepository
+import app.simplifymy.browser.ui.theme.AppIcon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -56,6 +57,11 @@ class SettingsViewModel(private val components: Components) : ViewModel() {
 
     private fun runBackup(block: suspend () -> BackupResult) {
         viewModelScope.launch { _backup.value = runCatching { block() }.getOrDefault(BackupResult.Failed) }
+    }
+
+    fun setAppIcon(icon: AppIcon) {
+        update { setAppIcon(icon) }
+        components.appIcons.request(icon)
     }
 
     fun update(change: suspend SettingsRepository.() -> Unit) {

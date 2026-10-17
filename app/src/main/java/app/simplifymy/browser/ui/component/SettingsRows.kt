@@ -1,5 +1,6 @@
 package app.simplifymy.browser.ui.component
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,7 +12,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -25,9 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.simplifymy.browser.R
+import app.simplifymy.browser.ui.theme.AppIcon
 import app.simplifymy.browser.ui.theme.BrowserTheme
 import app.simplifymy.browser.ui.theme.Radius
 import app.simplifymy.browser.ui.theme.Space
@@ -168,6 +176,62 @@ fun SwatchSetting(label: String, swatches: List<Color>, selected: Int, onSelect:
     }
 }
 
+@Composable
+fun AppIconSetting(selected: AppIcon, hint: String, onSelect: (AppIcon) -> Unit) {
+    val colors = BrowserTheme.colors
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = Space.screen, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            AppIconPreview(selected)
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(selected.labelRes), style = BrowserTheme.type.body, color = colors.text)
+                Text(hint, style = BrowserTheme.type.meta, color = colors.textFaint)
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = Space.screen),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AppIcon.entries.forEach { icon ->
+                val chosen = icon == selected
+                Box(
+                    Modifier
+                        .size(if (chosen) 26.dp else 22.dp)
+                        .clip(Radius.pill)
+                        .background(icon.background)
+                        .border(2.dp, if (chosen) colors.text else Color.Transparent, Radius.pill)
+                        .clickable { onSelect(icon) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppIconPreview(icon: AppIcon) {
+    Box(
+        modifier = Modifier
+            .size(52.dp)
+            .clip(APP_ICON_SHAPE)
+            .background(icon.background)
+            .border(1.dp, BrowserTheme.colors.hairline, APP_ICON_SHAPE),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            painter = painterResource(R.drawable.ic_launcher_foreground),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.requiredSize(78.dp),
+        )
+    }
+}
+
+private val APP_ICON_SHAPE = RoundedCornerShape(15.dp)
+
 @Preview
 @Composable
 private fun SettingsRowsPreview() {
@@ -176,6 +240,7 @@ private fun SettingsRowsPreview() {
             SettingsSection("Theme") {
                 DropdownSetting("Mode", listOf("Auto", "Light"), "Auto", {}) { it }
                 SwatchSetting("Accent", listOf(Color.Blue, Color.Yellow, Color.Green), 0, {})
+                AppIconSetting(AppIcon.Blue, "Applied when you leave the app", {})
                 ToggleSetting("Cookies", true, {}, hint = "Clears on exit")
                 LinkSetting("Licenses", {})
                 ValueSetting("Version", "0.1.0")
