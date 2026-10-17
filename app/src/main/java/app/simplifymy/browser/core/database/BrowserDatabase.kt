@@ -17,6 +17,7 @@ private val DEFAULT_TILES = listOf(
     "Booking" to "https://www.booking.com",
 )
 
+// After the first public release every schema change needs a version bump plus autoMigrations; the JSON in app/schemas is committed.
 @Database(entities = [SpeedDialTile::class], version = 1)
 abstract class BrowserDatabase : RoomDatabase() {
     abstract fun speedDial(): SpeedDialDao

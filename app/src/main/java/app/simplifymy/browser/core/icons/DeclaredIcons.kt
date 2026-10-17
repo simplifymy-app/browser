@@ -1,6 +1,8 @@
 package app.simplifymy.browser.core.icons
 
 import android.net.Uri
+import android.os.SystemClock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mozilla.components.browser.icons.IconRequest.Resource
@@ -10,26 +12,38 @@ import mozilla.components.concept.fetch.Request
 import mozilla.components.concept.fetch.Response
 import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 
 private val LINK_TAG = Regex("<link\\b[^>]*>", RegexOption.IGNORE_CASE)
 private val ATTRIBUTE = Regex("([a-zA-Z-]+)\\s*=\\s*(\"[^\"]*\"|'[^']*'|[^\\s>]+)")
 private const val HEAD_END = "</head>"
 private const val MAX_HEAD_CHARS = 256 * 1024
+private val RETRY_FAILED_AFTER_MS = TimeUnit.HOURS.toMillis(1)
 
 class DeclaredIcons(private val client: Client) {
 
     private val known = ConcurrentHashMap<String, List<Resource>>()
 
+    private val failedAt = ConcurrentHashMap<String, Long>()
+
     suspend fun of(pageUrl: String): List<Resource>? {
         val origin = Uri.parse(pageUrl).let { "${it.scheme}://${it.authority}" }
         known[origin]?.let { return it }
-        return withContext(Dispatchers.IO) {
+        failedAt[origin]?.let { if (SystemClock.elapsedRealtime() - it < RETRY_FAILED_AFTER_MS) return null }
+        val icons = withContext(Dispatchers.IO) {
             runCatching {
                 client.fetch(Request(pageUrl)).use { response ->
-                    if (response.status in 200..299) parse(readHead(response.body), response.url) else emptyList()
+                    if (response.status in 200..299) parse(readHead(response.body), response.url) else null
                 }
-            }.getOrNull()
-        }?.also { known[origin] = it }
+            }.getOrElse { if (it is CancellationException) throw it else null }
+        }
+        if (icons == null) {
+            failedAt[origin] = SystemClock.elapsedRealtime()
+        } else {
+            known[origin] = icons
+            failedAt.remove(origin)
+        }
+        return icons
     }
 
     private fun readHead(body: Response.Body): String = body.useBufferedReader { reader ->

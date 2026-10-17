@@ -89,8 +89,8 @@ class Components(private val context: Context) {
 
     private val declaredIcons by lazy { DeclaredIcons(client) }
 
-    suspend fun siteIcon(url: String): Bitmap {
-        declaredIcons.of(url)?.takeIf { it.isNotEmpty() }?.let { return loadIcon(url, it) }
+    suspend fun siteIcon(url: String, discover: Boolean): Bitmap {
+        if (discover) declaredIcons.of(url)?.takeIf { it.isNotEmpty() }?.let { return loadIcon(url, it) }
         val cached = icons.loadIcon(IconRequest(url, IconRequest.Size.LAUNCHER)).await()
         if (cached.source != Icon.Source.GENERATOR) return cached.bitmap
         val origin = Uri.parse(url).let { "${it.scheme}://${it.authority}" }
@@ -120,6 +120,8 @@ class Components(private val context: Context) {
                 SearchMiddleware(context, additionalBundledSearchEngineIds = ADDITIONAL_SEARCH_ENGINES),
                 RegionMiddleware(context, LocationService.dummy(), applicationScope = scope),
                 FileUploadsDirCleanerMiddleware(fileUploadsDirCleaner),
+                // speedDialSnapshots must run before tabThumbnails, which consumes UpdateThumbnailAction;
+                // ThumbnailsMiddleware after them only deletes thumbnails of removed tabs.
                 speedDialSnapshots(thumbnails, speedDialHosts),
                 tabThumbnails.middleware,
                 ThumbnailsMiddleware(thumbnails),

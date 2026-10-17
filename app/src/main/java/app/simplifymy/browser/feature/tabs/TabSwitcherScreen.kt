@@ -104,7 +104,7 @@ private fun TabCard(tab: TabItem, selected: Boolean, onClick: () -> Unit, onClos
                 .border(2.dp, if (selected) colors.accent else Color.Transparent, shape),
         )
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = Space.gutter)) {
-            Favicon(tab.url.takeUnless { tab.speedDial }.orEmpty(), bitmap = tab.icon)
+            Favicon(tab.url.takeUnless { tab.speedDial }.orEmpty(), bitmap = tab.icon, private = tab.private)
             Text(
                 tabTitle(tab),
                 style = BrowserTheme.type.label,

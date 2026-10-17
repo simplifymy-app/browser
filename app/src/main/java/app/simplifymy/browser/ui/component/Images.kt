@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import mozilla.components.support.ktx.kotlin.tryGetHostFromUrl
 
 class ImageLoaders(
-    val favicon: suspend (url: String) -> Bitmap? = { null },
+    val favicon: suspend (url: String, discover: Boolean) -> Bitmap? = { _, _ -> null },
     val thumbnail: suspend (tabId: String, private: Boolean) -> Bitmap? = { _, _ -> null },
     val image: suspend (url: String) -> Bitmap? = { null },
     val thumbnailVersions: StateFlow<Map<String, Int>> = MutableStateFlow(emptyMap()),
@@ -46,10 +46,17 @@ fun BitmapImage(
 }
 
 @Composable
-fun Favicon(url: String, modifier: Modifier = Modifier, size: Dp = 16.dp, bitmap: Bitmap? = null) {
+fun Favicon(
+    url: String,
+    modifier: Modifier = Modifier,
+    size: Dp = 16.dp,
+    bitmap: Bitmap? = null,
+    private: Boolean = false,
+    discover: Boolean = false,
+) {
     val loader = LocalImageLoaders.current.favicon
-    val loaded by produceState(bitmap, url, bitmap) {
-        if (bitmap == null && url.isNotEmpty()) value = loader(url)
+    val loaded by produceState(bitmap, url, bitmap, private, discover) {
+        if (bitmap == null && !private && url.isNotEmpty()) value = loader(url, discover)
     }
     val icon = loaded
     if (icon != null) {

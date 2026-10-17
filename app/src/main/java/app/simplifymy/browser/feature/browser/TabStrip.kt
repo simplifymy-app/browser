@@ -84,7 +84,7 @@ private fun TabChip(tab: TabItem, selected: Boolean, onClick: () -> Unit, onClos
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Space.base),
     ) {
-        Favicon(tab.url.takeUnless { tab.speedDial }.orEmpty(), bitmap = tab.icon)
+        Favicon(tab.url.takeUnless { tab.speedDial }.orEmpty(), bitmap = tab.icon, private = tab.private)
         Text(
             tabTitle(tab),
             style = BrowserTheme.type.label,

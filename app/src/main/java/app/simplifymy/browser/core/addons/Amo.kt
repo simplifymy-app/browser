@@ -8,6 +8,7 @@ import kotlinx.coroutines.withContext
 import mozilla.components.concept.fetch.Client
 import mozilla.components.concept.fetch.Request
 import org.json.JSONObject
+import java.io.IOException
 import java.util.Locale
 
 data class AmoAddon(
@@ -34,7 +35,13 @@ class Amo(private val client: Client) {
         runCatching { client.fetch(Request(url)).body.useStream(BitmapFactory::decodeStream) }.getOrNull()
     }
 
-    private suspend fun get(url: String) = withContext(Dispatchers.IO) { JSONObject(client.fetch(Request(url)).body.string()) }
+    private suspend fun get(url: String) = withContext(Dispatchers.IO) {
+        val body = client.fetch(Request(url)).use { response ->
+            if (response.status !in 200..299) throw IOException("HTTP ${response.status} for $url")
+            response.body.string()
+        }
+        JSONObject(body)
+    }
 
     private fun api(path: String, params: Map<String, String>) = Uri.parse("$BASE/api/v5/$path").buildUpon()
         .apply { (params + ("lang" to Locale.getDefault().toLanguageTag())).forEach { (k, v) -> appendQueryParameter(k, v) } }

@@ -227,9 +227,9 @@ private fun TileCard(
         val click = Modifier.combinedClickable(onClick = onOpen, onLongClick = {}).then(dragHandle)
         when (style) {
             SpeedDialStyle.Snapshot -> SnapshotTile(tile, click)
-            SpeedDialStyle.Icon -> TileBox(click) { Favicon(tile.url, size = 40.dp) }
+            SpeedDialStyle.Icon -> TileBox(click) { Favicon(tile.url, size = 40.dp, discover = true) }
             SpeedDialStyle.IconAndTitle -> TileBox(click) {
-                Favicon(tile.url, size = 32.dp)
+                Favicon(tile.url, size = 32.dp, discover = true)
                 TileTitle(tile.title, Modifier.padding(top = Space.base))
             }
         }
@@ -269,7 +269,7 @@ private fun SnapshotTile(tile: SpeedDialTile, modifier: Modifier) {
     Column(modifier = Modifier.fillMaxWidth().clip(tileShape()).then(modifier)) {
         Box(Modifier.fillMaxWidth().aspectRatio(SNAPSHOT_RATIO).clip(tileShape()), contentAlignment = Alignment.Center) {
             Box(Modifier.matchParentSize().background(BrowserTheme.colors.surface))
-            Favicon(tile.url, size = 32.dp)
+            Favicon(tile.url, size = 32.dp, discover = true)
             TabThumbnail(snapshotId(tile.url), private = false, modifier = Modifier.matchParentSize(), placeholder = false)
         }
         TileTitle(tile.title, Modifier.fillMaxWidth().padding(top = Space.gutter))

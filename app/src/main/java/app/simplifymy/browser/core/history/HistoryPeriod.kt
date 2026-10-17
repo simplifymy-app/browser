@@ -3,7 +3,7 @@ package app.simplifymy.browser.core.history
 import androidx.annotation.StringRes
 import app.simplifymy.browser.R
 import mozilla.components.concept.storage.HistoryStorage
-import java.time.LocalDate
+import java.time.Instant
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
@@ -17,7 +17,7 @@ enum class HistoryPeriod(@StringRes val labelRes: Int) {
 
     fun since(now: Long = System.currentTimeMillis()): Long? = when (this) {
         LastHour -> now - TimeUnit.HOURS.toMillis(1)
-        Today -> LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        Today -> Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         LastWeek -> now - TimeUnit.DAYS.toMillis(7)
         LastMonth -> now - TimeUnit.DAYS.toMillis(30)
         LastYear -> now - TimeUnit.DAYS.toMillis(365)

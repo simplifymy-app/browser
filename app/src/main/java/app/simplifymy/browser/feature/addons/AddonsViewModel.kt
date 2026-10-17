@@ -6,6 +6,7 @@ import app.simplifymy.browser.Components
 import app.simplifymy.browser.componentsFactory
 import app.simplifymy.browser.core.addons.Amo
 import app.simplifymy.browser.core.addons.AmoAddon
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -127,7 +128,7 @@ class AddonsViewModel(private val components: Components) : ViewModel() {
                 input.isXpi() -> emptyList()
                 else -> Amo.slugOf(input)?.let { listOf(components.amo.bySlug(it)) } ?: components.amo.search(input)
             }
-        }
+        }.onFailure { if (it is CancellationException) throw it }
         _state.update { it.copy(loading = false, failed = result.isFailure, results = result.getOrDefault(emptyList())) }
     }
 

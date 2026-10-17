@@ -23,8 +23,8 @@ android {
         applicationId = "app.simplifymy.browser"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 4
-        versionName = "0.1.3"
+        versionCode = 5
+        versionName = "0.1.4"
     }
 
     splits {
@@ -112,4 +112,7 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
 
     implementation(libs.bundles.mozilla)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.org.json)
 }

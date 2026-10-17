@@ -118,7 +118,13 @@ class MainActivity : AppCompatActivity() {
         val thumbnailSize = (THUMBNAIL_DP * resources.displayMetrics.density).toInt()
         ImageLoaders(
             favicon = components::siteIcon,
-            thumbnail = { id, private -> components.thumbnails.loadThumbnail(ImageLoadRequest(id, thumbnailSize, private)).await() },
+            thumbnail = { id, private ->
+                if (private) {
+                    components.tabThumbnails.privateThumbnail(id)
+                } else {
+                    components.thumbnails.loadThumbnail(ImageLoadRequest(id, thumbnailSize, false)).await()
+                }
+            },
             image = components.amo::image,
             thumbnailVersions = components.tabThumbnails.versions,
         )
