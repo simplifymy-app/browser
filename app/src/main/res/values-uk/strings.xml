@@ -63,6 +63,11 @@
     <string name="download_started">Завантаження %1$s</string>
     <string name="download_finished">Завантажено %1$s</string>
     <string name="download_no_app">Немає застосунку, щоб відкрити цей файл</string>
+    <string name="download_stop">Зупинити завантаження</string>
+    <string name="download_remove">Вилучити завантаження</string>
+    <string name="download_remove_title">Вилучити це завантаження?</string>
+    <string name="download_delete_file">Також видалити завантажений файл</string>
+    <string name="download_remove_confirm">Вилучити</string>
     <string name="mode_auto">Авто</string>
     <string name="mode_light">Світла</string>
     <string name="mode_dark">Темна</string>
@@ -144,6 +149,8 @@
     <string name="setting_tab_strip_hint">Показувати відкриті вкладки під панеллю</string>
     <string name="setting_hide_toolbar">Ховати панель під час прокручування</string>
     <string name="setting_hide_toolbar_hint">Прокрутіть угору, щоб повернути її</string>
+    <string name="setting_one_handed">Режим однієї руки</string>
+    <string name="setting_one_handed_hint">Заголовки, списки, вкладки й діалоги переходять униз екрана</string>
     <string name="setting_restore_tabs">Відновлювати вкладки</string>
     <string name="setting_restore_tabs_hint">Знову відкривати вкладки під час запуску браузера</string>
     <string name="setting_search_suggestions">Пошукові підказки</string>

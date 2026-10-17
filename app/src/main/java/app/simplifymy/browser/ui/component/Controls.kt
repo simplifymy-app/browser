@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -116,7 +115,6 @@ fun ScreenHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .statusBarsPadding()
             .padding(horizontal = Space.gutter, vertical = Space.gutter),
         verticalAlignment = Alignment.CenterVertically,
     ) {

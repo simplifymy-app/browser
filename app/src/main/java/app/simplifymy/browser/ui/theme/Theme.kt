@@ -23,6 +23,7 @@ private val LocalType = staticCompositionLocalOf { browserType(InterfaceFamily.S
 private val LocalCorners = staticCompositionLocalOf { CornerStyle.Default }
 private val LocalReduceMotion = staticCompositionLocalOf { false }
 private val LocalMenuDensity = staticCompositionLocalOf { MenuDensity.Medium }
+private val LocalOneHanded = staticCompositionLocalOf { false }
 
 object BrowserTheme {
     val colors: BrowserColors
@@ -35,6 +36,8 @@ object BrowserTheme {
         @Composable @ReadOnlyComposable get() = LocalReduceMotion.current
     val menuDensity: MenuDensity
         @Composable @ReadOnlyComposable get() = LocalMenuDensity.current
+    val oneHanded: Boolean
+        @Composable @ReadOnlyComposable get() = LocalOneHanded.current
 }
 
 @Composable
@@ -47,6 +50,7 @@ fun BrowserTheme(
     textScale: TextScale = TextScale.Default,
     reduceMotion: Boolean = false,
     menuDensity: MenuDensity = MenuDensity.Medium,
+    oneHanded: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val dark = mode.isDark()
@@ -61,6 +65,7 @@ fun BrowserTheme(
         LocalCorners provides corners,
         LocalReduceMotion provides reduceMotion,
         LocalMenuDensity provides menuDensity,
+        LocalOneHanded provides oneHanded,
     ) {
         MaterialTheme(
             colorScheme = colors.toMaterial(dark),

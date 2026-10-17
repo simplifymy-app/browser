@@ -5,38 +5,47 @@ import android.content.Intent
 import android.text.format.DateUtils
 import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.simplifymy.browser.R
 import app.simplifymy.browser.core.history.HistoryPeriod
+import app.simplifymy.browser.ui.component.BrowserDialog
 import app.simplifymy.browser.ui.component.BrowserIcons
+import app.simplifymy.browser.ui.component.Checkbox
 import app.simplifymy.browser.ui.component.EmptyState
 import app.simplifymy.browser.ui.component.Favicon
+import app.simplifymy.browser.ui.component.HeaderScreen
 import app.simplifymy.browser.ui.component.IconAction
 import app.simplifymy.browser.ui.component.ListRow
-import app.simplifymy.browser.ui.component.Screen
-import app.simplifymy.browser.ui.component.ScreenHeader
 import app.simplifymy.browser.ui.component.SegmentedPicker
 import app.simplifymy.browser.ui.theme.BrowserTheme
+import app.simplifymy.browser.ui.theme.Radius
 import app.simplifymy.browser.ui.theme.Space
 import mozilla.components.browser.state.state.content.DownloadState
 
@@ -75,6 +84,8 @@ fun LibraryScreen(
             context.startActivity(Intent(DownloadManager.ACTION_VIEW_DOWNLOADS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         },
         onOpenDownload = { if (!viewModel.openDownload(it)) onNotice(noApp) },
+        onStopDownload = viewModel::stopDownload,
+        onRemoveDownload = viewModel::removeDownload,
     )
 }
 
@@ -91,25 +102,47 @@ fun LibraryContent(
     onClearHistory: (HistoryPeriod) -> Unit,
     onOpenDownloads: () -> Unit,
     onOpenDownload: (DownloadState) -> Unit,
+    onStopDownload: (DownloadState) -> Unit,
+    onRemoveDownload: (DownloadState, deleteFile: Boolean) -> Unit,
 ) {
     var section by remember { mutableStateOf(start) }
     var clearing by remember { mutableStateOf(false) }
+    var removing by remember { mutableStateOf<DownloadState?>(null) }
     if (clearing) ClearHistoryDialog(onDismiss = { clearing = false }, onClear = { onClearHistory(it); clearing = false })
-    Screen(Modifier.fillMaxSize()) {
-        ScreenHeader(stringResource(section.labelRes), onBack) {
+    removing?.let { download ->
+        RemoveDownloadDialog(
+            download = download,
+            onDismiss = { removing = null },
+            onRemove = { deleteFile -> onRemoveDownload(download, deleteFile); removing = null },
+        )
+    }
+    val oneHanded = BrowserTheme.oneHanded
+    val picker = @Composable { modifier: Modifier ->
+        SegmentedPicker(
+            options = LibrarySection.entries,
+            selected = section,
+            onSelect = { section = it },
+            modifier = modifier.padding(horizontal = Space.screen, vertical = Space.base),
+        ) { stringResource(it.labelRes) }
+    }
+    HeaderScreen(
+        title = stringResource(section.labelRes),
+        onBack = onBack,
+        modifier = Modifier.fillMaxSize(),
+        titleAtBottom = true,
+        actions = {
             when (section) {
                 LibrarySection.History -> IconAction(BrowserIcons.Delete, stringResource(R.string.history_clear), { clearing = true }, enabled = history.isNotEmpty())
                 LibrarySection.Downloads -> IconAction(BrowserIcons.Download, stringResource(R.string.downloads_system), onOpenDownloads)
                 LibrarySection.Bookmarks -> Unit
             }
-        }
-        SegmentedPicker(
-            options = LibrarySection.entries,
-            selected = section,
-            onSelect = { section = it },
-            modifier = Modifier.padding(horizontal = Space.screen, vertical = Space.base),
-        ) { stringResource(it.labelRes) }
-        LazyColumn(Modifier.weight(1f).navigationBarsPadding()) {
+        },
+    ) {
+        if (!oneHanded) picker(Modifier)
+        LazyColumn(
+            modifier = Modifier.weight(1f).then(if (oneHanded) Modifier else Modifier.navigationBarsPadding()),
+            verticalArrangement = if (oneHanded) Arrangement.Bottom else Arrangement.Top,
+        ) {
             when (section) {
                 LibrarySection.Bookmarks -> {
                     if (bookmarks.isEmpty()) item { EmptyState(stringResource(R.string.library_empty)) }
@@ -121,10 +154,11 @@ fun LibraryContent(
                 }
                 LibrarySection.Downloads -> {
                     if (downloads.isEmpty()) item { EmptyState(stringResource(R.string.library_empty)) }
-                    items(downloads, key = { it.state.id }) { download -> DownloadRow(download, onOpenDownload) }
+                    items(downloads, key = { it.state.id }) { download -> DownloadRow(download, onOpenDownload, onStopDownload) { removing = it } }
                 }
             }
         }
+        if (oneHanded) picker(Modifier)
     }
 }
 
@@ -141,7 +175,12 @@ private fun EntryRow(entry: LibraryEntry, onOpen: (String) -> Unit, onDelete: (L
 }
 
 @Composable
-private fun DownloadRow(item: DownloadItem, onOpen: (DownloadState) -> Unit) {
+private fun DownloadRow(
+    item: DownloadItem,
+    onOpen: (DownloadState) -> Unit,
+    onStop: (DownloadState) -> Unit,
+    onRemove: (DownloadState) -> Unit,
+) {
     val download = item.state
     val colors = BrowserTheme.colors
     val downloading = download.status == DownloadState.Status.DOWNLOADING
@@ -153,12 +192,47 @@ private fun DownloadRow(item: DownloadItem, onOpen: (DownloadState) -> Unit) {
             subtitle = downloadSubtitle(item),
             onClick = open,
             leading = { IconAction(BrowserIcons.Download, download.fileName.orEmpty(), open ?: {}, tint = colors.textMuted) },
+            trailing = {
+                if (download.isActive) {
+                    IconAction(BrowserIcons.Close, stringResource(R.string.download_stop), { onStop(download) }, tint = colors.textMuted)
+                }
+                IconAction(BrowserIcons.Delete, stringResource(R.string.download_remove), { onRemove(download) }, tint = colors.textMuted)
+            },
         )
         if (downloading && total != null) {
             val fraction = (download.currentBytesCopied.toFloat() / total).coerceIn(0f, 1f)
             Canvas(Modifier.fillMaxWidth().padding(horizontal = Space.screen).padding(bottom = Space.base).height(2.dp)) {
                 drawRect(colors.hairline)
                 drawRect(colors.accent, size = size.copy(width = size.width * fraction))
+            }
+        }
+    }
+}
+
+@Composable
+private fun RemoveDownloadDialog(download: DownloadState, onDismiss: () -> Unit, onRemove: (deleteFile: Boolean) -> Unit) {
+    var deleteFile by remember { mutableStateOf(false) }
+    val colors = BrowserTheme.colors
+    BrowserDialog(
+        title = stringResource(R.string.download_remove_title),
+        onDismiss = onDismiss,
+        confirmLabel = stringResource(R.string.download_remove_confirm),
+        onConfirm = { onRemove(deleteFile) },
+        dismissLabel = stringResource(R.string.action_cancel),
+    ) {
+        Text(download.fileName ?: download.url, style = BrowserTheme.type.body, color = colors.textMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        if (download.status == DownloadState.Status.COMPLETED) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(Radius.control)
+                    .clickable { deleteFile = !deleteFile }
+                    .padding(vertical = Space.base),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Space.toolbarInset),
+            ) {
+                Checkbox(deleteFile)
+                Text(stringResource(R.string.download_delete_file), style = BrowserTheme.type.body, color = colors.text)
             }
         }
     }
@@ -208,6 +282,8 @@ private fun LibraryContentPreview() {
             onClearHistory = {},
             onOpenDownloads = {},
             onOpenDownload = {},
+            onStopDownload = {},
+            onRemoveDownload = { _, _ -> },
         )
     }
 }

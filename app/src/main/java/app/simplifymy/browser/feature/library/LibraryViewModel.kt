@@ -23,6 +23,9 @@ data class LibraryEntry(val key: String, val title: String, val url: String, val
 
 data class DownloadItem(val state: DownloadState, val bytesPerSecond: Long? = null)
 
+val DownloadState.isActive: Boolean
+    get() = status == DownloadState.Status.INITIATED || status == DownloadState.Status.DOWNLOADING || status == DownloadState.Status.PAUSED
+
 private const val SPEED_SMOOTHING = 0.4
 
 private class SpeedSample(val bytes: Long, val time: Long, val rate: Double?)
@@ -62,6 +65,13 @@ class LibraryViewModel(private val components: Components) : ViewModel() {
 
     fun openDownload(download: DownloadState): Boolean =
         components.downloadFileUtils.openFile(download.fileName, download.directoryPath, download.contentType)
+
+    fun stopDownload(download: DownloadState) = components.cancelDownload(download.id)
+
+    fun removeDownload(download: DownloadState, deleteFile: Boolean) {
+        if (download.isActive) components.cancelDownload(download.id)
+        components.downloadsUseCases.removeDownload(download.id, deleteFile)
+    }
 
     fun load() {
         viewModelScope.launch {

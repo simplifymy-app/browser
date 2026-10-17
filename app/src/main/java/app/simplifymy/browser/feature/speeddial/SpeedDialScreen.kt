@@ -110,7 +110,7 @@ fun SpeedDialGrid(
         modifier = modifier.fillMaxSize().background(BrowserTheme.colors.background),
         contentPadding = PaddingValues(Space.screen),
         horizontalArrangement = Arrangement.spacedBy(Space.base),
-        verticalArrangement = Arrangement.spacedBy(Space.base),
+        verticalArrangement = Arrangement.spacedBy(Space.base, if (BrowserTheme.oneHanded) Alignment.Bottom else Alignment.Top),
     ) {
         items(drag.order, key = { it.id }) { tile ->
             val dragging = drag.draggingId == tile.id

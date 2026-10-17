@@ -63,6 +63,11 @@
     <string name="download_started">Downloading %1$s</string>
     <string name="download_finished">Downloaded %1$s</string>
     <string name="download_no_app">No app can open this file</string>
+    <string name="download_stop">Stop download</string>
+    <string name="download_remove">Remove download</string>
+    <string name="download_remove_title">Remove this download?</string>
+    <string name="download_delete_file">Also delete the downloaded file</string>
+    <string name="download_remove_confirm">Remove</string>
     <string name="mode_auto">Auto</string>
     <string name="mode_light">Light</string>
     <string name="mode_dark">Dark</string>
@@ -144,6 +149,8 @@
     <string name="setting_tab_strip_hint">Show open tabs under the toolbar</string>
     <string name="setting_hide_toolbar">Hide toolbar on scroll</string>
     <string name="setting_hide_toolbar_hint">Scroll up to bring it back</string>
+    <string name="setting_one_handed">One-handed mode</string>
+    <string name="setting_one_handed_hint">Titles, lists, tabs and dialogs move to the bottom of the screen</string>
     <string name="setting_restore_tabs">Restore tabs</string>
     <string name="setting_restore_tabs_hint">Reopen your tabs when the browser starts</string>
     <string name="setting_search_suggestions">Search suggestions</string>

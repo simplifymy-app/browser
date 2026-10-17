@@ -11,6 +11,9 @@
   <a href="https://github.com/simplifymy-app/browser/releases">Changelog</a>
 </p>
 
+> [!WARNING]
+> **Experimental.** This browser is an early, experimental project. It is provided as is, without warranty of any kind, and may lose data, break or change at any time. If you use it, you do so entirely at your own risk. See [LICENSE](LICENSE).
+
 <p align="center">
   <img src="docs/speed-dial.png" alt="Speed Dial with tiles for Wikipedia, YouTube, Reddit, GitHub, BBC News, Amazon, IMDb and Booking, above the address bar and tab strip" width="32%">
   <img src="docs/tabs.png" alt="Tab switcher with page previews of Wikipedia, GitHub, Booking, IMDb and a Wikipedia article" width="32%">
@@ -39,7 +42,7 @@ There is no analytics, no crash reporting and no account in the app. Besides the
 
 ## 📦 Install
 
-Not released yet — the build runs and the polish is next. Android 8.0 or newer.
+Experimental builds are on the [Releases](https://github.com/simplifymy-app/browser/releases) page — use them at your own risk. Android 8.0 or newer.
 
 ## 🔨 Build
 
@@ -79,3 +82,9 @@ feature/settings every setting
 ```
 
 Kotlin and Jetpack Compose in a single `:app` module on Mozilla Android Components, powered by Gecko. Manual dependency injection through one `Components` object, no Hilt. Ships in English, Ukrainian, German, Spanish, French and Portuguese; every language always has the same keys.
+
+## 📄 License
+
+© 2026 Simplify my app. The source code is licensed under the [Mozilla Public License 2.0](LICENSE): you may use, change and ship it, also in closed or commercial apps, but changes to these files must stay under the MPL and be shared. It is provided as is, without warranty of any kind.
+
+GeckoView and Mozilla Android Components, which the app is built on, are also under the Mozilla Public License 2.0; their source is in [mozilla-firefox/firefox](https://github.com/mozilla-firefox/firefox). Settings > Open source licenses lists every license bundled with the engine. Extensions installed from addons.mozilla.org carry their own licenses.

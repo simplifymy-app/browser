@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,13 +34,12 @@ import app.simplifymy.browser.core.addons.AmoAddon
 import app.simplifymy.browser.ui.component.BitmapImage
 import app.simplifymy.browser.ui.component.BrowserIcons
 import app.simplifymy.browser.ui.component.EmptyState
+import app.simplifymy.browser.ui.component.HeaderScreen
 import app.simplifymy.browser.ui.component.IconAction
 import app.simplifymy.browser.ui.component.InputField
 import app.simplifymy.browser.ui.component.ListRow
 import app.simplifymy.browser.ui.component.MenuRow
 import app.simplifymy.browser.ui.component.RemoteImage
-import app.simplifymy.browser.ui.component.Screen
-import app.simplifymy.browser.ui.component.ScreenHeader
 import app.simplifymy.browser.ui.component.SectionHeader
 import app.simplifymy.browser.ui.component.Toggle
 import app.simplifymy.browser.ui.theme.BrowserTheme
@@ -81,17 +81,20 @@ fun AddonsScreen(viewModel: AddonsViewModel, onBack: () -> Unit) {
 @Composable
 fun AddonsContent(state: AddonsState, onBack: () -> Unit, actions: AddonActions) {
     val searching = state.query.isNotBlank()
-    Screen(Modifier.fillMaxSize()) {
-        ScreenHeader(stringResource(R.string.action_extensions), onBack)
+    val oneHanded = BrowserTheme.oneHanded
+    val search = @Composable { modifier: Modifier ->
         InputField(
             value = state.query,
             onValueChange = actions.query,
             placeholder = stringResource(R.string.addons_search_hint),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = Space.screen),
+            modifier = modifier.fillMaxWidth().padding(horizontal = Space.screen),
             keyboardType = KeyboardType.Uri,
             onSubmit = actions.submit,
         )
-        LazyColumn(Modifier.weight(1f).navigationBarsPadding()) {
+    }
+    HeaderScreen(stringResource(R.string.action_extensions), onBack, Modifier.fillMaxSize()) {
+        if (!oneHanded) search(Modifier)
+        LazyColumn(Modifier.weight(1f).then(if (oneHanded) Modifier else Modifier.navigationBarsPadding())) {
             if (!searching) {
                 item { SectionHeader(stringResource(R.string.addons_installed)) }
                 if (state.installed.isEmpty()) item { EmptyState(stringResource(R.string.addons_empty)) }
@@ -107,6 +110,7 @@ fun AddonsContent(state: AddonsState, onBack: () -> Unit, actions: AddonActions)
                 AmoRow(addon, installed = addon.guid in state.installedIds, busy = addon.guid in state.busy) { actions.install(addon) }
             }
         }
+        if (oneHanded) search(Modifier.navigationBarsPadding().imePadding().padding(vertical = Space.base))
     }
 }
 

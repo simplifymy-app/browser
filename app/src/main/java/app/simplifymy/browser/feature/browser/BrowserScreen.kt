@@ -65,6 +65,8 @@ private val NOTICE_OFFSET = 112.dp
 private val ChromeInsets: WindowInsets
     @Composable get() = WindowInsets.safeDrawing.exclude(WindowInsets.ime).union(WindowInsets.imeAnimationTarget)
 
+private class Notice(val text: String, val opensDownloads: Boolean = false)
+
 enum class Overlay(val section: LibrarySection? = null) {
     None,
     Tabs,
@@ -86,7 +88,7 @@ fun BrowserScreen(engineView: EngineView) {
     val prompt by addons.prompt.collectAsStateWithLifecycle()
     val popup by addons.popup.collectAsStateWithLifecycle()
     var overlay by remember { mutableStateOf(Overlay.None) }
-    var notice by remember { mutableStateOf<String?>(null) }
+    var notice by remember { mutableStateOf<Notice?>(null) }
     val close = { overlay = Overlay.None }
     val context = LocalContext.current
     val activity = LocalActivity.current
@@ -110,10 +112,11 @@ fun BrowserScreen(engineView: EngineView) {
     val finished = stringResource(R.string.download_finished)
     LaunchedEffect(viewModel) {
         viewModel.downloadNotices.collect {
-            notice = when (it) {
+            val text = when (it) {
                 is DownloadNotice.Started -> started.format(it.fileName)
                 is DownloadNotice.Finished -> finished.format(it.fileName)
             }
+            notice = Notice(text, opensDownloads = true)
         }
     }
     LaunchedEffect(settings.themeMode) { AppCompatDelegate.setDefaultNightMode(settings.themeMode.nightMode()) }
@@ -125,6 +128,7 @@ fun BrowserScreen(engineView: EngineView) {
         family = settings.font,
         textScale = settings.textScale,
         menuDensity = settings.menuDensity,
+        oneHanded = settings.oneHanded,
     ) {
         SystemBars()
         Box(Modifier.fillMaxSize()) {
@@ -166,16 +170,17 @@ fun BrowserScreen(engineView: EngineView) {
                     viewModel = viewModel(factory = LibraryViewModel.Factory),
                     start = overlay.section!!,
                     onOpen = { viewModel.open(it); close() },
-                    onNotice = { notice = it },
+                    onNotice = { notice = Notice(it) },
                     onBack = close,
                 )
             }
-            prompt?.let { ExtensionPrompt(it, addons) { text -> notice = text } }
-            notice?.let { text ->
+            prompt?.let { ExtensionPrompt(it, addons) { text -> notice = Notice(text) } }
+            notice?.let { current ->
                 Snackbar(
-                    text = text,
+                    text = current.text,
                     onDone = { notice = null },
                     modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = NOTICE_OFFSET),
+                    onClick = { overlay = Overlay.Downloads }.takeIf { current.opensDownloads },
                 )
             }
             popup?.let { extension -> ExtensionPopup(extension) { addons.closePopup(extension) } }

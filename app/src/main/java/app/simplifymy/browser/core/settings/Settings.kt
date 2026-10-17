@@ -44,6 +44,7 @@ data class BrowserSettings(
     val textScale: TextScale = TextScale.Default,
     val toolbarPosition: ToolbarPosition = ToolbarPosition.Bottom,
     val menuDensity: MenuDensity = MenuDensity.Medium,
+    val oneHanded: Boolean = false,
     val mobileView: Boolean = true,
     val showTabStrip: Boolean = true,
     val hideToolbarOnScroll: Boolean = false,
@@ -65,6 +66,7 @@ private object Keys {
     val textScale = stringPreferencesKey("text_scale")
     val toolbarPosition = stringPreferencesKey("toolbar_position")
     val menuDensity = stringPreferencesKey("menu_density")
+    val oneHanded = booleanPreferencesKey("one_handed")
     val mobileView = booleanPreferencesKey("mobile_view")
     val showTabStrip = booleanPreferencesKey("show_tab_strip")
     val hideToolbarOnScroll = booleanPreferencesKey("hide_toolbar_on_scroll")
@@ -91,6 +93,7 @@ class SettingsRepository(private val context: Context) {
             textScale = p.enum(Keys.textScale, defaults.textScale),
             toolbarPosition = p.enum(Keys.toolbarPosition, defaults.toolbarPosition),
             menuDensity = p.enum(Keys.menuDensity, defaults.menuDensity),
+            oneHanded = p[Keys.oneHanded] ?: defaults.oneHanded,
             mobileView = p[Keys.mobileView] ?: defaults.mobileView,
             showTabStrip = p[Keys.showTabStrip] ?: defaults.showTabStrip,
             hideToolbarOnScroll = p[Keys.hideToolbarOnScroll] ?: defaults.hideToolbarOnScroll,
@@ -110,6 +113,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setTextScale(value: TextScale) = put(Keys.textScale, value)
     suspend fun setToolbarPosition(value: ToolbarPosition) = put(Keys.toolbarPosition, value)
     suspend fun setMenuDensity(value: MenuDensity) = put(Keys.menuDensity, value)
+    suspend fun setOneHanded(value: Boolean) = put(Keys.oneHanded, value)
     suspend fun setSpeedDialStyle(value: SpeedDialStyle) = put(Keys.speedDialStyle, value)
     suspend fun setSpeedDialColumns(value: Int) = put(Keys.speedDialColumns, value.coerceIn(SPEED_DIAL_COLUMNS))
     suspend fun setMobileView(value: Boolean) = put(Keys.mobileView, value)

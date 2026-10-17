@@ -1,6 +1,7 @@
 package app.simplifymy.browser
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.core.app.NotificationManagerCompat
@@ -39,8 +40,10 @@ import mozilla.components.feature.addons.AddonManager
 import mozilla.components.feature.addons.amo.AMOAddonsProvider
 import mozilla.components.feature.addons.update.DefaultAddonUpdater
 import mozilla.components.feature.contextmenu.ContextMenuUseCases
+import mozilla.components.feature.downloads.AbstractFetchDownloadService
 import mozilla.components.feature.downloads.DownloadMiddleware
 import mozilla.components.feature.downloads.DownloadsUseCases
+import mozilla.components.feature.downloads.INTENT_EXTRA_DOWNLOAD_ID
 import mozilla.components.feature.prompts.file.FileUploadsDirCleaner
 import mozilla.components.feature.prompts.file.FileUploadsDirCleanerMiddleware
 import mozilla.components.feature.search.middleware.SearchMiddleware
@@ -138,6 +141,14 @@ class Components(private val context: Context) {
         database.speedDial().tiles()
             .map { tiles -> tiles.map { it.url.tryGetHostFromUrl() }.toSet() }
             .stateIn(scope, SharingStarted.Eagerly, emptySet())
+    }
+
+    fun cancelDownload(id: String) {
+        context.sendBroadcast(
+            Intent(AbstractFetchDownloadService.ACTION_CANCEL)
+                .setPackage(context.packageName)
+                .putExtra(INTENT_EXTRA_DOWNLOAD_ID, id),
+        )
     }
 
     val sessionUseCases by lazy { SessionUseCases(store) }

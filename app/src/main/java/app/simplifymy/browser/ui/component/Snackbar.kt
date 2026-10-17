@@ -1,6 +1,7 @@
 package app.simplifymy.browser.ui.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,7 +19,7 @@ import kotlinx.coroutines.delay
 private const val SNACKBAR_MS = 3_000L
 
 @Composable
-fun Snackbar(text: String, onDone: () -> Unit, modifier: Modifier = Modifier) {
+fun Snackbar(text: String, onDone: () -> Unit, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     LaunchedEffect(text) {
         delay(SNACKBAR_MS)
         onDone()
@@ -29,6 +30,7 @@ fun Snackbar(text: String, onDone: () -> Unit, modifier: Modifier = Modifier) {
             .padding(Space.toolbarInset)
             .clip(Radius.card)
             .background(BrowserTheme.colors.surfaceAlt)
+            .then(if (onClick != null) Modifier.clickable { onClick(); onDone() } else Modifier)
             .padding(horizontal = Space.screen, vertical = Space.toolbarInset),
     ) {
         Text(text, style = BrowserTheme.type.body, color = BrowserTheme.colors.text)

@@ -25,23 +25,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.simplifymy.browser.R
 import app.simplifymy.browser.core.history.HistoryPeriod
-import app.simplifymy.browser.feature.library.HistoryPeriodSetting
 import app.simplifymy.browser.core.settings.BrowserSettings
 import app.simplifymy.browser.core.settings.Language
 import app.simplifymy.browser.core.settings.SPEED_DIAL_COLUMNS
 import app.simplifymy.browser.core.settings.SettingsRepository
 import app.simplifymy.browser.core.settings.SpeedDialStyle
 import app.simplifymy.browser.core.settings.ToolbarPosition
+import app.simplifymy.browser.feature.library.HistoryPeriodSetting
 import app.simplifymy.browser.ui.component.AppIconSetting
 import app.simplifymy.browser.ui.component.BrowserDialog
 import app.simplifymy.browser.ui.component.DropdownSetting
+import app.simplifymy.browser.ui.component.HeaderScreen
 import app.simplifymy.browser.ui.component.LinkSetting
 import app.simplifymy.browser.ui.component.PickerSetting
-import app.simplifymy.browser.ui.component.Screen
-import app.simplifymy.browser.ui.component.ScreenHeader
-import app.simplifymy.browser.ui.component.Snackbar
 import app.simplifymy.browser.ui.component.SegmentedPicker
 import app.simplifymy.browser.ui.component.SettingsSection
+import app.simplifymy.browser.ui.component.Snackbar
 import app.simplifymy.browser.ui.component.StepperSetting
 import app.simplifymy.browser.ui.component.SwatchSetting
 import app.simplifymy.browser.ui.component.ToggleSetting
@@ -113,10 +112,14 @@ fun SettingsContent(
     val version = remember { context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty() }
 
     Box(Modifier.fillMaxSize()) {
-        Screen(Modifier.fillMaxSize()) {
-            ScreenHeader(stringResource(R.string.action_settings), onBack)
+        val oneHanded = BrowserTheme.oneHanded
+        HeaderScreen(stringResource(R.string.action_settings), onBack, Modifier.fillMaxSize(), titleAtBottom = true) {
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = Space.screen),
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .then(if (oneHanded) Modifier else Modifier.navigationBarsPadding())
+                    .padding(bottom = Space.screen),
                 verticalArrangement = Arrangement.spacedBy(Space.section),
             ) {
                 SettingsSection(stringResource(R.string.section_browser)) {
@@ -137,6 +140,17 @@ fun SettingsContent(
                     settings.showTabStrip,
                     { update { setShowTabStrip(it) } },
                     hint = stringResource(R.string.setting_tab_strip_hint),
+                )
+                ToggleSetting(
+                    stringResource(R.string.setting_one_handed),
+                    settings.oneHanded,
+                    {
+                        update {
+                            setOneHanded(it)
+                            if (it) setToolbarPosition(ToolbarPosition.Bottom)
+                        }
+                    },
+                    hint = stringResource(R.string.setting_one_handed_hint),
                 )
                 ToggleSetting(
                     stringResource(R.string.setting_hide_toolbar),

@@ -63,6 +63,11 @@
     <string name="download_started">A transferir %1$s</string>
     <string name="download_finished">%1$s transferido</string>
     <string name="download_no_app">Nenhuma aplicação consegue abrir este ficheiro</string>
+    <string name="download_stop">Parar transferência</string>
+    <string name="download_remove">Remover transferência</string>
+    <string name="download_remove_title">Remover esta transferência?</string>
+    <string name="download_delete_file">Eliminar também o ficheiro transferido</string>
+    <string name="download_remove_confirm">Remover</string>
     <string name="mode_auto">Auto</string>
     <string name="mode_light">Claro</string>
     <string name="mode_dark">Escuro</string>
@@ -144,6 +149,8 @@
     <string name="setting_tab_strip_hint">Mostrar os separadores abertos sob a barra</string>
     <string name="setting_hide_toolbar">Ocultar a barra ao deslizar</string>
     <string name="setting_hide_toolbar_hint">Deslize para cima para a mostrar de novo</string>
+    <string name="setting_one_handed">Modo de uma mão</string>
+    <string name="setting_one_handed_hint">Títulos, listas, separadores e caixas de diálogo passam para o fundo do ecrã</string>
     <string name="setting_restore_tabs">Restaurar separadores</string>
     <string name="setting_restore_tabs_hint">Reabrir os seus separadores quando o navegador inicia</string>
     <string name="setting_search_suggestions">Sugestões de pesquisa</string>
