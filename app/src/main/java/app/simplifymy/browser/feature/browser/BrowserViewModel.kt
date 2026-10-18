@@ -11,13 +11,16 @@ import app.simplifymy.browser.core.backup.MOBILE_BOOKMARKS
 import app.simplifymy.browser.core.search.choices
 import app.simplifymy.browser.core.search.selectSearchEngine
 import app.simplifymy.browser.core.search.selectedId
+import app.simplifymy.browser.core.search.urlFor
 import app.simplifymy.browser.core.settings.BrowserSettings
 import app.simplifymy.browser.core.settings.ToolbarPosition
+import app.simplifymy.browser.core.settings.shouldOfferDefaultBrowser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +29,8 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -39,16 +44,14 @@ import mozilla.components.browser.state.selector.selectedTab
 import mozilla.components.browser.state.state.BrowserState
 import mozilla.components.browser.state.state.SecurityInfo
 import mozilla.components.browser.state.state.TabSessionState
+import mozilla.components.browser.state.state.ContentState
 import mozilla.components.browser.state.state.content.DownloadState
 import mozilla.components.browser.state.state.selectedOrDefaultSearchEngine
 import mozilla.components.concept.engine.EngineView
 import mozilla.components.concept.engine.webextension.Action
 import mozilla.components.concept.fetch.Request
-import mozilla.components.feature.search.ext.buildSearchUrl
 import mozilla.components.feature.search.suggestions.SearchSuggestionClient
 import mozilla.components.lib.state.ext.flow
-import mozilla.components.support.ktx.kotlin.isUrl
-import mozilla.components.support.ktx.kotlin.toNormalizedUrl
 
 data class TabItem(
     val id: String,
@@ -100,6 +103,7 @@ data class BrowserUiState(
 private const val SUGGESTION_DEBOUNCE_MS = 120L
 private const val HISTORY_SUGGESTIONS = 4
 private const val SEARCH_SUGGESTIONS = 5
+private const val DEFAULT_BROWSER_OFFER_DELAY_MS = 1_000L
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class BrowserViewModel(private val components: Components) : ViewModel() {
@@ -181,6 +185,42 @@ class BrowserViewModel(private val components: Components) : ViewModel() {
         }
     }
 
+    val linkOpened: Flow<Unit> = components.linkOpened
+
+    private val composeDialogVisible = MutableStateFlow(false)
+
+    fun setDialogVisible(visible: Boolean) {
+        composeDialogVisible.value = visible
+    }
+
+    val showDefaultBrowserOffer: StateFlow<Boolean> = flow {
+        components.tabsRestored.await()
+        emitAll(
+            combine(
+                browser.map { it.selectedTabId != null }.distinctUntilChanged(),
+                components.settings.defaultBrowserOffered,
+                components.openedFromLink,
+                composeDialogVisible,
+                browser.map { it.selectedTab?.content?.hasEngineDialog() == true }.distinctUntilChanged(),
+            ) { hasTab, offered, fromLink, composeDialog, engineDialog ->
+                hasTab && shouldOfferDefaultBrowser(offered, components.isDefaultBrowser(), fromLink, composeDialog || engineDialog)
+            },
+        )
+    }
+        .distinctUntilChanged()
+        .mapLatest { offer ->
+            if (offer) delay(DEFAULT_BROWSER_OFFER_DELAY_MS)
+            offer
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 0, replayExpirationMillis = 0), false)
+
+    fun onDefaultBrowserOfferShown() {
+        viewModelScope.launch { components.settings.markDefaultBrowserOffered() }
+    }
+
+    private fun ContentState.hasEngineDialog() =
+        promptRequests.isNotEmpty() || permissionRequestsList.isNotEmpty() || appPermissionRequestsList.isNotEmpty() || download != null
+
     fun captureThumbnail(engineView: EngineView) = components.tabThumbnails.capture(engineView, store)
 
     init {
@@ -228,14 +268,8 @@ class BrowserViewModel(private val components: Components) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BrowserUiState())
 
     fun submit(input: String) {
-        val text = input.trim()
-        if (text.isEmpty()) return
-        val url = if (text.isUrl()) {
-            text.toNormalizedUrl()
-        } else {
-            store.state.search.selectedOrDefaultSearchEngine?.buildSearchUrl(text) ?: return
-        }
-        load(url, text)
+        val url = store.state.search.urlFor(input) ?: return
+        load(url, input.trim())
     }
 
     fun open(url: String) = load(url, null)

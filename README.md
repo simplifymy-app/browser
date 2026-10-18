@@ -35,6 +35,7 @@ A browser for Android on Gecko, with the extensions you know from the desktop. S
 | **Pages** | Mobile or desktop view per tab, long-press menu for links and images, site permissions with an option to remember |
 | **Make it yours** | Light, dark or pure black, five accents, four fonts, text size, toolbar at the top or bottom, hide it on scroll |
 | **Keep** | Speed Dial and bookmarks exported to one file and imported back on another phone |
+| **Default browser** | Opens links from other apps and can be the default browser |
 
 There is no analytics, no crash reporting and no account in the app. Besides the sites you open, it talks to addons.mozilla.org to search, install and update extensions. Blocking ads is uBlock Origin's job — you install it, the browser does not pretend to.
 
@@ -61,6 +62,24 @@ make lint       # android lint over the debug variant
 `make help` lists the rest. The engine is large, so the build splits APKs by ABI and `make install` streams the one the device needs instead of copying it twice.
 
 Release builds are signed with the Play upload key from `keystore.properties`, which is not in the repository. Without it they fall back to the debug keystore, so a fresh clone still builds an installable APK.
+
+### Links from other apps
+
+With the debug build on a device or emulator (`adb` from the Android SDK):
+
+```
+adb shell am start -a android.intent.action.VIEW -d "https://example.com"     # opens in a new tab
+adb shell am start -a android.intent.action.VIEW -d "javascript:alert(1)"     # opens nothing
+adb shell am start -a android.intent.action.VIEW -d "file:///sdcard/x.html"   # opens nothing
+adb shell am start -a android.intent.action.WEB_SEARCH --es query "gecko"     # search results
+adb shell am start -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "see https://example.org"
+
+adb shell cmd role add-role-holder android.app.role.BROWSER app.simplifymy.browser.debug
+adb shell cmd role holders android.app.role.BROWSER                            # lists the app
+adb shell cmd role remove-role-holder android.app.role.BROWSER app.simplifymy.browser.debug
+```
+
+Back on a tab opened this way, with no history of its own, returns to the app that sent the link. The offer to become the default browser appears once, about a second after the first normal launch; after `adb uninstall app.simplifymy.browser.debug` and a reinstall it comes again.
 
 ## 🧭 Layout
 

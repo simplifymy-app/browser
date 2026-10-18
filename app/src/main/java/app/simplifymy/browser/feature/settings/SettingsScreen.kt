@@ -22,10 +22,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.simplifymy.browser.R
 import app.simplifymy.browser.core.history.HistoryPeriod
 import app.simplifymy.browser.core.settings.BrowserSettings
+import app.simplifymy.browser.core.settings.DefaultBrowser
 import app.simplifymy.browser.core.settings.Language
 import app.simplifymy.browser.core.settings.SPEED_DIAL_COLUMNS
 import app.simplifymy.browser.core.settings.SettingsRepository
@@ -74,8 +77,18 @@ fun SettingsScreen(viewModel: SettingsViewModel, onOpenUrl: (String) -> Unit, on
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let(viewModel::import)
     }
+    val context = LocalContext.current
+    var isDefaultBrowser by remember { mutableStateOf(DefaultBrowser.isDefault(context)) }
+    val defaultBrowserRequest = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        isDefaultBrowser = DefaultBrowser.isDefault(context)
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { isDefaultBrowser = DefaultBrowser.isDefault(context) }
     BackHandler(onBack = onBack)
     SettingsContent(
+        isDefaultBrowser = isDefaultBrowser,
+        onDefaultBrowser = {
+            defaultBrowserRequest.launch(if (isDefaultBrowser) DefaultBrowser.manageIntent(context) else DefaultBrowser.requestIntent(context))
+        },
         backupMessage = backup?.message(),
         onBackupShown = viewModel::backupShown,
         onExport = { exporter.launch("browser-backup-${LocalDate.now()}.json") },
@@ -93,6 +106,8 @@ fun SettingsScreen(viewModel: SettingsViewModel, onOpenUrl: (String) -> Unit, on
 
 @Composable
 fun SettingsContent(
+    isDefaultBrowser: Boolean,
+    onDefaultBrowser: () -> Unit,
     backupMessage: String?,
     onBackupShown: () -> Unit,
     onExport: () -> Unit,
@@ -123,6 +138,16 @@ fun SettingsContent(
                 verticalArrangement = Arrangement.spacedBy(Space.section),
             ) {
                 SettingsSection(stringResource(R.string.section_browser)) {
+                    if (isDefaultBrowser) {
+                        ValueSetting(
+                            stringResource(R.string.default_browser_is),
+                            "✓",
+                            hint = stringResource(R.string.default_browser_change_hint),
+                            onClick = onDefaultBrowser,
+                        )
+                    } else {
+                        LinkSetting(stringResource(R.string.default_browser_set), onDefaultBrowser, stringResource(R.string.default_browser_hint))
+                    }
                     DropdownSetting(
                         label = stringResource(R.string.setting_search_engine),
                         options = engines.choices.map { it.id },
@@ -289,6 +314,8 @@ private fun ClearDataDialog(onDismiss: () -> Unit, onClear: (HistoryPeriod?, Boo
 private fun SettingsContentPreview() {
     BrowserTheme {
         SettingsContent(
+            isDefaultBrowser = false,
+            onDefaultBrowser = {},
             backupMessage = null,
             onBackupShown = {},
             onExport = {},

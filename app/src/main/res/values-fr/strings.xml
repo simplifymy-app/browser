@@ -155,4 +155,13 @@
     <string name="setting_restore_tabs_hint">Rouvrir vos onglets au démarrage du navigateur</string>
     <string name="setting_search_suggestions">Suggestions de recherche</string>
     <string name="setting_search_suggestions_hint">Demander des suggestions au moteur de recherche pendant la saisie. Désactivé en navigation privée</string>
+    <string name="default_browser_offer_title">Faire de Simplify votre navigateur par défaut ?</string>
+    <string name="default_browser_offer_body">Les liens des autres applications s’ouvriront ici.</string>
+    <string name="default_browser_make">Définir par défaut</string>
+    <string name="default_browser_not_now">Plus tard</string>
+    <string name="default_browser_set">Définir comme navigateur par défaut</string>
+    <string name="default_browser_is">Navigateur par défaut</string>
+    <string name="default_browser_hint">Ouvrir ici les liens des autres applications</string>
+    <string name="default_browser_change_hint">Modifier dans les paramètres du système</string>
+    <string name="image_copied">Image copiée</string>
 </resources>

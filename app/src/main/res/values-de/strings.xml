@@ -155,4 +155,13 @@
     <string name="setting_restore_tabs_hint">Tabs beim Start des Browsers wieder öffnen</string>
     <string name="setting_search_suggestions">Suchvorschläge</string>
     <string name="setting_search_suggestions_hint">Beim Tippen Vorschläge von der Suchmaschine abrufen. In privaten Tabs aus</string>
+    <string name="default_browser_offer_title">Simplify als Standardbrowser festlegen?</string>
+    <string name="default_browser_offer_body">Links aus anderen Apps werden dann hier geöffnet.</string>
+    <string name="default_browser_make">Als Standard festlegen</string>
+    <string name="default_browser_not_now">Nicht jetzt</string>
+    <string name="default_browser_set">Als Standardbrowser festlegen</string>
+    <string name="default_browser_is">Standardbrowser</string>
+    <string name="default_browser_hint">Links aus anderen Apps hier öffnen</string>
+    <string name="default_browser_change_hint">In den Systemeinstellungen ändern</string>
+    <string name="image_copied">Bild kopiert</string>
 </resources>

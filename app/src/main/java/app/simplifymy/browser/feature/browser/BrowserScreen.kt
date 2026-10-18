@@ -2,6 +2,8 @@ package app.simplifymy.browser.feature.browser
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +26,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +40,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.simplifymy.browser.core.settings.DefaultBrowser
 import app.simplifymy.browser.core.settings.ToolbarPosition
 import app.simplifymy.browser.feature.addons.AddonsScreen
 import app.simplifymy.browser.feature.addons.AddonsViewModel
@@ -87,6 +91,9 @@ fun BrowserScreen(engineView: EngineView) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val prompt by addons.prompt.collectAsStateWithLifecycle()
     val popup by addons.popup.collectAsStateWithLifecycle()
+    val offerDefaultBrowser by viewModel.showDefaultBrowserOffer.collectAsStateWithLifecycle()
+    var offeringDefaultBrowser by rememberSaveable { mutableStateOf(false) }
+    val defaultBrowserRequest = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
     var overlay by remember { mutableStateOf(Overlay.None) }
     var notice by remember { mutableStateOf<Notice?>(null) }
     val close = { overlay = Overlay.None }
@@ -117,6 +124,14 @@ fun BrowserScreen(engineView: EngineView) {
                 is DownloadNotice.Finished -> finished.format(it.fileName)
             }
             notice = Notice(text, opensDownloads = true)
+        }
+    }
+    LaunchedEffect(viewModel) { viewModel.linkOpened.collect { overlay = Overlay.None } }
+    LaunchedEffect(prompt != null || popup != null) { viewModel.setDialogVisible(prompt != null || popup != null) }
+    LaunchedEffect(offerDefaultBrowser) {
+        if (offerDefaultBrowser) {
+            offeringDefaultBrowser = true
+            viewModel.onDefaultBrowserOfferShown()
         }
     }
     LaunchedEffect(settings.themeMode) { AppCompatDelegate.setDefaultNightMode(settings.themeMode.nightMode()) }
@@ -184,6 +199,15 @@ fun BrowserScreen(engineView: EngineView) {
                 )
             }
             popup?.let { extension -> ExtensionPopup(extension) { addons.closePopup(extension) } }
+            if (offeringDefaultBrowser) {
+                DefaultBrowserOffer(
+                    onMakeDefault = {
+                        offeringDefaultBrowser = false
+                        defaultBrowserRequest.launch(DefaultBrowser.requestIntent(context))
+                    },
+                    onDismiss = { offeringDefaultBrowser = false },
+                )
+            }
         }
     }
 }

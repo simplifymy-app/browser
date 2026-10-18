@@ -155,4 +155,13 @@
     <string name="setting_restore_tabs_hint">Reopen your tabs when the browser starts</string>
     <string name="setting_search_suggestions">Search suggestions</string>
     <string name="setting_search_suggestions_hint">Ask the search engine for suggestions as you type. Off in private tabs</string>
+    <string name="default_browser_offer_title">Make Simplify your default browser?</string>
+    <string name="default_browser_offer_body">Links from other apps will open here.</string>
+    <string name="default_browser_make">Make default</string>
+    <string name="default_browser_not_now">Not now</string>
+    <string name="default_browser_set">Set as default browser</string>
+    <string name="default_browser_is">Default browser</string>
+    <string name="default_browser_hint">Open links from other apps here</string>
+    <string name="default_browser_change_hint">Change in system settings</string>
+    <string name="image_copied">Image copied</string>
 </resources>

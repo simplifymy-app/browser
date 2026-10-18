@@ -45,8 +45,8 @@ class BrowserApp : Application() {
             }
             scope.launch { appIcons.request(settings.settings.first().appIcon) }
             scope.launch {
-                if (settings.settings.first().restoreTabs) tabsUseCases.restore(sessionStorage)
-                if (store.state.tabs.isEmpty()) tabsUseCases.addTab(SPEED_DIAL_URL)
+                if (settings.settings.first().restoreTabs) runCatching { tabsUseCases.restore(sessionStorage) }
+                tabsRestored.complete(Unit)
                 sessionStorage.autoSave(store).periodicallyInForeground().whenGoingToBackground().whenSessionsChange()
             }
         }

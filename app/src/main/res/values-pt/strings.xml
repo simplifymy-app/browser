@@ -155,4 +155,13 @@
     <string name="setting_restore_tabs_hint">Reabrir os seus separadores quando o navegador inicia</string>
     <string name="setting_search_suggestions">Sugestões de pesquisa</string>
     <string name="setting_search_suggestions_hint">Pedir sugestões ao motor de pesquisa enquanto escreve. Desligado em separadores privados</string>
+    <string name="default_browser_offer_title">Tornar o Simplify o seu navegador padrão?</string>
+    <string name="default_browser_offer_body">Os links de outras apps vão abrir aqui.</string>
+    <string name="default_browser_make">Tornar padrão</string>
+    <string name="default_browser_not_now">Agora não</string>
+    <string name="default_browser_set">Definir como navegador padrão</string>
+    <string name="default_browser_is">Navegador padrão</string>
+    <string name="default_browser_hint">Abrir aqui os links de outras apps</string>
+    <string name="default_browser_change_hint">Alterar nas definições do sistema</string>
+    <string name="image_copied">Imagem copiada</string>
 </resources>

@@ -155,4 +155,13 @@
     <string name="setting_restore_tabs_hint">Знову відкривати вкладки під час запуску браузера</string>
     <string name="setting_search_suggestions">Пошукові підказки</string>
     <string name="setting_search_suggestions_hint">Запитувати підказки в пошукової системи під час введення. Вимкнено в приватних вкладках</string>
+    <string name="default_browser_offer_title">Зробити Simplify браузером за замовчуванням?</string>
+    <string name="default_browser_offer_body">Посилання з інших застосунків відкриватимуться тут.</string>
+    <string name="default_browser_make">Зробити основним</string>
+    <string name="default_browser_not_now">Не зараз</string>
+    <string name="default_browser_set">Зробити браузером за замовчуванням</string>
+    <string name="default_browser_is">Браузер за замовчуванням</string>
+    <string name="default_browser_hint">Відкривати тут посилання з інших застосунків</string>
+    <string name="default_browser_change_hint">Змінити в налаштуваннях системи</string>
+    <string name="image_copied">Зображення скопійовано</string>
 </resources>

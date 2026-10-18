@@ -155,4 +155,13 @@
     <string name="setting_restore_tabs_hint">Volver a abrir tus pestañas al iniciar el navegador</string>
     <string name="setting_search_suggestions">Sugerencias de búsqueda</string>
     <string name="setting_search_suggestions_hint">Pedir sugerencias al buscador mientras escribes. Desactivado en pestañas privadas</string>
+    <string name="default_browser_offer_title">¿Hacer de Simplify tu navegador predeterminado?</string>
+    <string name="default_browser_offer_body">Los enlaces de otras apps se abrirán aquí.</string>
+    <string name="default_browser_make">Hacer predeterminado</string>
+    <string name="default_browser_not_now">Ahora no</string>
+    <string name="default_browser_set">Establecer como navegador predeterminado</string>
+    <string name="default_browser_is">Navegador predeterminado</string>
+    <string name="default_browser_hint">Abre aquí los enlaces de otras apps</string>
+    <string name="default_browser_change_hint">Cámbialo en los ajustes del sistema</string>
+    <string name="image_copied">Imagen copiada</string>
 </resources>

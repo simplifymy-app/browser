@@ -13,10 +13,14 @@ import app.simplifymy.browser.core.database.speedDialSnapshots
 import app.simplifymy.browser.core.icons.DeclaredIcons
 import app.simplifymy.browser.core.search.ADDITIONAL_SEARCH_ENGINES
 import app.simplifymy.browser.core.settings.AppIconManager
+import app.simplifymy.browser.core.settings.DefaultBrowser
 import app.simplifymy.browser.core.settings.SettingsRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -66,6 +70,14 @@ private val consumeSaveToPdfResults: Middleware<BrowserState, BrowserAction> = {
 class Components(private val context: Context) {
 
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    val tabsRestored = CompletableDeferred<Unit>()
+
+    val openedFromLink = MutableStateFlow(false)
+
+    val linkOpened = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    fun isDefaultBrowser() = DefaultBrowser.isDefault(context)
 
     val settings by lazy { SettingsRepository(context) }
 

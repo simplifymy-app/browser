@@ -1,36 +1,58 @@
 package app.simplifymy.browser
 
+import android.app.SearchManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Browser
 import android.view.Gravity
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.core.content.IntentCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import app.simplifymy.browser.core.intent.ExternalLink
+import app.simplifymy.browser.core.intent.externalUrl
 import app.simplifymy.browser.feature.browser.BrowserScreen
 import app.simplifymy.browser.ui.component.ImageLoaders
 import app.simplifymy.browser.ui.component.LocalImageLoaders
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.launch
+import mozilla.components.browser.state.selector.selectedTab
+import mozilla.components.browser.state.state.ExternalPackage
+import mozilla.components.browser.state.state.PackageCategory
+import mozilla.components.browser.state.state.SessionState
+import mozilla.components.browser.state.state.selectedOrDefaultSearchEngine
 import mozilla.components.browser.thumbnails.BrowserThumbnails
 import mozilla.components.concept.base.images.ImageLoadRequest
+import mozilla.components.concept.engine.EngineSession.LoadUrlFlags
 import mozilla.components.feature.contextmenu.ContextMenuCandidate
 import mozilla.components.feature.contextmenu.ContextMenuFeature
 import mozilla.components.feature.downloads.DownloadsFeature
 import mozilla.components.feature.downloads.manager.FetchDownloadManager
+import mozilla.components.feature.downloads.temporary.CopyDownloadFeature
 import mozilla.components.feature.prompts.PromptFeature
+import mozilla.components.feature.search.ext.buildSearchUrl
 import mozilla.components.feature.session.FullScreenFeature
 import mozilla.components.feature.session.SessionFeature
 import mozilla.components.feature.sitepermissions.SitePermissionsFeature
+import mozilla.components.lib.state.ext.flow
 import mozilla.components.support.base.feature.LifecycleAwareFeature
 import mozilla.components.support.base.feature.PermissionsFeature
+
+private class IncomingLink(val link: ExternalLink, val source: SessionState.Source.External, val applicationId: String?)
 
 class MainActivity : AppCompatActivity() {
 
@@ -126,6 +148,20 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private val copyImageFeature by lazy {
+        CopyDownloadFeature(
+            context = applicationContext,
+            store = components.store,
+            tabId = null,
+            onCopyConfirmation = {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                    Toast.makeText(this, R.string.image_copied, Toast.LENGTH_SHORT).show()
+                }
+            },
+            httpClient = components.client,
+        )
+    }
+
     private val thumbnailsFeature by lazy { BrowserThumbnails(this, engineView, components.store) }
 
     private val imageLoaders by lazy {
@@ -148,9 +184,10 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         components.notificationsDelegate.bindToActivity(this)
-        bind(sessionFeature, fullScreenFeature, promptFeature, sitePermissionsFeature, downloadsFeature, contextMenuFeature, thumbnailsFeature)
+        bind(sessionFeature, fullScreenFeature, promptFeature, sitePermissionsFeature, downloadsFeature, contextMenuFeature, copyImageFeature, thumbnailsFeature)
         onBackPressedDispatcher.addCallback(this) {
             if (fullScreenFeature.onBackPressed() || promptFeature.onBackPressed() || sessionFeature.onBackPressed()) return@addCallback
+            if (returnToCaller()) return@addCallback
             isEnabled = false
             onBackPressedDispatcher.onBackPressed()
             isEnabled = true
@@ -160,10 +197,85 @@ class MainActivity : AppCompatActivity() {
                 BrowserScreen(engineView)
             }
         }
+        val fresh = savedInstanceState == null && intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY == 0
+        val incoming = if (fresh) takeLink(intent) else null
+        lifecycleScope.launch {
+            components.tabsRestored.await()
+            when {
+                incoming != null -> open(incoming)
+                components.store.state.tabs.isEmpty() -> components.tabsUseCases.addTab(SPEED_DIAL_URL)
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        val incoming = takeLink(intent) ?: return
+        lifecycleScope.launch {
+            components.tabsRestored.await()
+            open(incoming)
+        }
+    }
+
+    private fun takeLink(intent: Intent): IncomingLink? {
+        setIntent(Intent())
+        val link = externalUrl(
+            action = intent.action,
+            data = intent.dataString,
+            text = intent.getStringExtra(Intent.EXTRA_TEXT),
+            query = intent.getStringExtra(SearchManager.QUERY),
+        ) ?: return null
+        components.openedFromLink.value = true
+        val caller = callerPackage(intent)?.let { ExternalPackage(it, PackageCategory.UNKNOWN) }
+        val source = when (intent.action) {
+            Intent.ACTION_SEND -> SessionState.Source.External.ActionSend(caller)
+            Intent.ACTION_WEB_SEARCH -> SessionState.Source.External.ActionSearch(caller)
+            else -> SessionState.Source.External.ActionView(caller)
+        }
+        return IncomingLink(link, source, intent.getStringExtra(Browser.EXTRA_APPLICATION_ID))
+    }
+
+    private fun callerPackage(intent: Intent): String? {
+        val referrer = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_REFERRER, Uri::class.java)
+        val fromReferrer = referrer?.takeIf { it.scheme == ANDROID_APP_SCHEME }?.host
+        return (fromReferrer ?: callingPackage)?.takeIf { it.isNotBlank() && it != packageName }
+    }
+
+    private suspend fun open(incoming: IncomingLink) {
+        val url = when (val link = incoming.link) {
+            is ExternalLink.Url -> link.url
+            is ExternalLink.Search -> components.store.flow()
+                .mapNotNull { it.search.selectedOrDefaultSearchEngine }
+                .first()
+                .buildSearchUrl(link.text)
+        }
+        val callerId = incoming.source.caller?.packageId
+        val reusable = incoming.applicationId?.takeIf { it == callerId }?.let { id ->
+            components.store.state.tabs.lastOrNull { tab ->
+                !tab.content.private && (tab.source as? SessionState.Source.External)?.caller?.packageId == id
+            }
+        }
+        if (reusable != null) {
+            components.tabsUseCases.selectTab(reusable.id)
+            components.sessionUseCases.loadUrl(url, reusable.id, LoadUrlFlags.external())
+        } else {
+            components.tabsUseCases.addTab(url, selectTab = true, flags = LoadUrlFlags.external(), source = incoming.source)
+        }
+        components.linkOpened.tryEmit(Unit)
+    }
+
+    private fun returnToCaller(): Boolean {
+        val tab = components.store.state.selectedTab ?: return false
+        if (tab.source !is SessionState.Source.External || tab.content.canGoBack) return false
+        components.tabsUseCases.removeTab(tab.id)
+        if (components.store.state.tabs.isEmpty()) components.tabsUseCases.addTab(SPEED_DIAL_URL)
+        moveTaskToBack(true)
+        return true
     }
 
     override fun onStop() {
         super.onStop()
+        components.openedFromLink.value = false
         components.appIcons.flush()
     }
 
@@ -207,5 +319,6 @@ class MainActivity : AppCompatActivity() {
 
     private companion object {
         const val THUMBNAIL_DP = 240
+        const val ANDROID_APP_SCHEME = "android-app"
     }
 }

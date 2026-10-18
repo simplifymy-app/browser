@@ -91,7 +91,7 @@ fun LinkSetting(label: String, onClick: () -> Unit, hint: String? = null) =
     }
 
 @Composable
-fun ValueSetting(label: String, value: String) = SettingRow(label) {
+fun ValueSetting(label: String, value: String, hint: String? = null, onClick: (() -> Unit)? = null) = SettingRow(label, hint, onClick) {
     Text(value, style = BrowserTheme.type.value, color = BrowserTheme.colors.textMuted)
 }
 

@@ -74,6 +74,7 @@ private object Keys {
     val searchSuggestions = booleanPreferencesKey("search_suggestions")
     val speedDialColumns = intPreferencesKey("speed_dial_columns")
     val speedDialStyle = stringPreferencesKey("speed_dial_style")
+    val defaultBrowserOffered = booleanPreferencesKey("default_browser_offered")
 }
 
 private inline fun <reified T : Enum<T>> Preferences.enum(key: Preferences.Key<String>, fallback: T): T =
@@ -103,6 +104,10 @@ class SettingsRepository(private val context: Context) {
             speedDialStyle = p.enum(Keys.speedDialStyle, defaults.speedDialStyle),
         )
     }
+
+    val defaultBrowserOffered: Flow<Boolean> = context.dataStore.data.map { it[Keys.defaultBrowserOffered] ?: false }
+
+    suspend fun markDefaultBrowserOffered() = put(Keys.defaultBrowserOffered, true)
 
     suspend fun setThemeMode(value: ThemeMode) = put(Keys.themeMode, value)
     suspend fun setAccent(value: Accent) = put(Keys.accent, value)
