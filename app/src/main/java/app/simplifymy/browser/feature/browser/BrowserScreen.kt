@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -40,6 +41,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import app.simplifymy.browser.core.settings.DefaultBrowser
 import app.simplifymy.browser.core.settings.ToolbarPosition
 import app.simplifymy.browser.feature.addons.AddonsScreen
@@ -82,7 +84,7 @@ enum class Overlay(val section: LibrarySection? = null) {
 }
 
 @Composable
-fun BrowserScreen(engineView: EngineView) {
+fun BrowserScreen(engineView: EngineView, pageView: SwipeRefreshLayout) {
     val viewModel: BrowserViewModel = viewModel(factory = BrowserViewModel.Factory)
     val addons: AddonsViewModel = viewModel(factory = AddonsViewModel.Factory)
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -155,6 +157,7 @@ fun BrowserScreen(engineView: EngineView) {
                 extensionActions = { extensionActions.value },
                 viewModel = viewModel,
                 engineView = engineView,
+                pageView = pageView,
                 menuActions = menuActions,
                 onTabs = {
                     viewModel.captureThumbnail(engineView)
@@ -221,6 +224,7 @@ private fun BrowserChrome(
     extensionActions: () -> List<ExtensionAction>,
     viewModel: BrowserViewModel,
     engineView: EngineView,
+    pageView: SwipeRefreshLayout,
     menuActions: MenuActions,
     onTabs: () -> Unit,
     onPanel: () -> Unit,
@@ -277,8 +281,19 @@ private fun BrowserChrome(
             }
         }
         Box(Modifier.weight(1f)) {
-            AndroidView(factory = { engineView.asView() }, modifier = Modifier.fillMaxSize())
+            val spinner = BrowserTheme.colors.accent.toArgb()
+            val spinnerBackground = BrowserTheme.colors.surface.toArgb()
+            AndroidView(
+                factory = { pageView },
+                update = {
+                    it.isEnabled = !state.fullScreen
+                    it.setColorSchemeColors(spinner)
+                    it.setProgressBackgroundColorSchemeColor(spinnerBackground)
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
             if (state.speedDial) SpeedDialScreen(onOpen = viewModel::open)
+            state.pageError?.let { PageErrorView(it, onRetry = viewModel::reload) }
             if (editing && suggestions.isNotEmpty()) {
                 SuggestionList(
                     suggestions = suggestions,

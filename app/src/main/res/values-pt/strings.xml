@@ -164,4 +164,9 @@
     <string name="default_browser_hint">Abrir aqui os links de outras apps</string>
     <string name="default_browser_change_hint">Alterar nas definições do sistema</string>
     <string name="image_copied">Imagem copiada</string>
+    <string name="page_offline_title">Você está offline</string>
+    <string name="page_offline_text">Verifique o Wi-Fi ou os dados móveis e tente novamente.</string>
+    <string name="page_unreachable_title">Não foi possível acessar o site</string>
+    <string name="page_unreachable_text">%1$s não respondeu. Verifique o endereço ou tente mais tarde.</string>
+    <string name="page_retry">Tentar novamente</string>
 </resources>

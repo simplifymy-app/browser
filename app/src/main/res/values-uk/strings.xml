@@ -164,4 +164,9 @@
     <string name="default_browser_hint">Відкривати тут посилання з інших застосунків</string>
     <string name="default_browser_change_hint">Змінити в налаштуваннях системи</string>
     <string name="image_copied">Зображення скопійовано</string>
+    <string name="page_offline_title">Ви офлайн</string>
+    <string name="page_offline_text">Перевірте Wi-Fi або мобільні дані й спробуйте ще раз.</string>
+    <string name="page_unreachable_title">Сайт недоступний</string>
+    <string name="page_unreachable_text">%1$s не відповідає. Перевірте адресу або спробуйте пізніше.</string>
+    <string name="page_retry">Спробувати ще</string>
 </resources>

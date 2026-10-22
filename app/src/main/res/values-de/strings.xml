@@ -164,4 +164,9 @@
     <string name="default_browser_hint">Links aus anderen Apps hier öffnen</string>
     <string name="default_browser_change_hint">In den Systemeinstellungen ändern</string>
     <string name="image_copied">Bild kopiert</string>
+    <string name="page_offline_title">Du bist offline</string>
+    <string name="page_offline_text">Prüfe WLAN oder mobile Daten und versuche es erneut.</string>
+    <string name="page_unreachable_title">Website nicht erreichbar</string>
+    <string name="page_unreachable_text">%1$s antwortet nicht. Prüfe die Adresse oder versuche es später erneut.</string>
+    <string name="page_retry">Erneut versuchen</string>
 </resources>

@@ -23,8 +23,8 @@ android {
         applicationId = "app.simplifymy.browser"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 8
-        versionName = "0.1.7"
+        versionCode = 9
+        versionName = "0.1.8"
     }
 
     splits {
@@ -103,6 +103,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.material)
     implementation(libs.bundles.room)
     ksp(libs.androidx.room.compiler)

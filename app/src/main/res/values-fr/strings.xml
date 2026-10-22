@@ -164,4 +164,9 @@
     <string name="default_browser_hint">Ouvrir ici les liens des autres applications</string>
     <string name="default_browser_change_hint">Modifier dans les paramètres du système</string>
     <string name="image_copied">Image copiée</string>
+    <string name="page_offline_title">Vous êtes hors ligne</string>
+    <string name="page_offline_text">Vérifiez le Wi-Fi ou les données mobiles, puis réessayez.</string>
+    <string name="page_unreachable_title">Site inaccessible</string>
+    <string name="page_unreachable_text">%1$s ne répond pas. Vérifiez l’adresse ou réessayez plus tard.</string>
+    <string name="page_retry">Réessayer</string>
 </resources>

@@ -8,6 +8,7 @@ import app.simplifymy.browser.Components
 import app.simplifymy.browser.SPEED_DIAL_URL
 import app.simplifymy.browser.componentsFactory
 import app.simplifymy.browser.core.backup.MOBILE_BOOKMARKS
+import app.simplifymy.browser.core.errors.PageError
 import app.simplifymy.browser.core.search.choices
 import app.simplifymy.browser.core.search.selectSearchEngine
 import app.simplifymy.browser.core.search.selectedId
@@ -96,6 +97,7 @@ data class BrowserUiState(
     val bookmarked: Boolean = false,
     val desktopMode: Boolean = false,
     val fullScreen: Boolean = false,
+    val pageError: PageError? = null,
 ) {
     val speedDial get() = url.isEmpty() && selectedTabId != null
 }
@@ -234,7 +236,8 @@ class BrowserViewModel(private val components: Components) : ViewModel() {
         components.settings.settings,
         bookmarked,
         pendingUrl,
-    ) { browser, settings, bookmarked, pending ->
+        components.pageErrors.byTab,
+    ) { browser, settings, bookmarked, pending, pageErrors ->
         val tab = browser.selectedTab
         val content = tab?.content
         val private = content?.private == true
@@ -262,6 +265,7 @@ class BrowserViewModel(private val components: Components) : ViewModel() {
             bookmarked = bookmarked,
             desktopMode = content?.desktopMode == true,
             fullScreen = content?.fullScreen == true,
+            pageError = pageErrors[tab?.id]?.takeIf { pending == null && it.url == content?.url },
         )
     }
         .distinctUntilChanged()
@@ -295,10 +299,7 @@ class BrowserViewModel(private val components: Components) : ViewModel() {
 
     fun selectTab(id: String) = components.tabsUseCases.selectTab(id)
 
-    fun closeTab(id: String) {
-        components.tabsUseCases.removeTab(id)
-        if (store.state.tabs.isEmpty()) newTab(private = false)
-    }
+    fun closeTab(id: String) = components.closeTab(id)
 
     fun selectSearchEngine(engine: SearchEngine) = store.selectSearchEngine(engine)
 

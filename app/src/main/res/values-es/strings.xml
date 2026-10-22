@@ -164,4 +164,9 @@
     <string name="default_browser_hint">Abre aquí los enlaces de otras apps</string>
     <string name="default_browser_change_hint">Cámbialo en los ajustes del sistema</string>
     <string name="image_copied">Imagen copiada</string>
+    <string name="page_offline_title">Sin conexión</string>
+    <string name="page_offline_text">Revisa el Wi-Fi o los datos móviles e inténtalo de nuevo.</string>
+    <string name="page_unreachable_title">No se puede acceder al sitio</string>
+    <string name="page_unreachable_text">%1$s no responde. Revisa la dirección o inténtalo más tarde.</string>
+    <string name="page_retry">Reintentar</string>
 </resources>

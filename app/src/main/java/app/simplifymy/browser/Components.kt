@@ -10,6 +10,7 @@ import app.simplifymy.browser.core.backup.Backup
 import app.simplifymy.browser.core.database.BrowserDatabase
 import app.simplifymy.browser.core.database.TabThumbnails
 import app.simplifymy.browser.core.database.speedDialSnapshots
+import app.simplifymy.browser.core.errors.PageErrors
 import app.simplifymy.browser.core.icons.DeclaredIcons
 import app.simplifymy.browser.core.search.ADDITIONAL_SEARCH_ENGINES
 import app.simplifymy.browser.core.settings.AppIconManager
@@ -93,8 +94,14 @@ class Components(private val context: Context) {
 
     val bookmarks by lazy { PlacesBookmarksStorage(context) }
 
+    val pageErrors: PageErrors by lazy { PageErrors(context) { store } }
+
     val engine by lazy {
-        GeckoEngine(context, DefaultSettings(historyTrackingDelegate = HistoryDelegate(lazy { history })), runtime)
+        val settings = DefaultSettings(
+            requestInterceptor = pageErrors,
+            historyTrackingDelegate = HistoryDelegate(lazy { history }),
+        )
+        GeckoEngine(context, settings, runtime)
     }
 
     val client by lazy { GeckoViewFetchClient(context, runtime) }
@@ -144,6 +151,7 @@ class Components(private val context: Context) {
                 tabThumbnails.middleware,
                 ThumbnailsMiddleware(thumbnails),
                 consumeSaveToPdfResults,
+                pageErrors.middleware,
                 DownloadMiddleware(context, DownloadService::class.java, { false }, downloadFileUtils),
             ),
         )
@@ -166,6 +174,13 @@ class Components(private val context: Context) {
     val sessionUseCases by lazy { SessionUseCases(store) }
 
     val tabsUseCases by lazy { TabsUseCases(store) }
+
+    fun closeTab(id: String) {
+        tabsUseCases.removeTab(id)
+        if (store.state.selectedTabId != null) return
+        val next = store.state.tabs.lastOrNull { !it.content.private }
+        if (next != null) tabsUseCases.selectTab(next.id) else tabsUseCases.addTab(SPEED_DIAL_URL)
+    }
 
     val contextMenuUseCases by lazy { ContextMenuUseCases(store) }
 

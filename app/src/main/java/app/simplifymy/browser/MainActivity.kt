@@ -22,6 +22,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import app.simplifymy.browser.core.intent.ExternalLink
 import app.simplifymy.browser.core.intent.externalUrl
 import app.simplifymy.browser.feature.browser.BrowserScreen
@@ -47,7 +48,9 @@ import mozilla.components.feature.prompts.PromptFeature
 import mozilla.components.feature.search.ext.buildSearchUrl
 import mozilla.components.feature.session.FullScreenFeature
 import mozilla.components.feature.session.SessionFeature
+import mozilla.components.feature.session.SwipeRefreshFeature
 import mozilla.components.feature.sitepermissions.SitePermissionsFeature
+import mozilla.components.feature.tabs.WindowFeature
 import mozilla.components.lib.state.ext.flow
 import mozilla.components.support.base.feature.LifecycleAwareFeature
 import mozilla.components.support.base.feature.PermissionsFeature
@@ -57,6 +60,8 @@ private class IncomingLink(val link: ExternalLink, val source: SessionState.Sour
 class MainActivity : AppCompatActivity() {
 
     private val engineView by lazy { components.engine.createView(this) }
+
+    private val pageView by lazy { SwipeRefreshLayout(this).apply { addView(engineView.asView()) } }
 
     private var permissionsRequester: PermissionsFeature? = null
 
@@ -74,6 +79,12 @@ class MainActivity : AppCompatActivity() {
             components.sessionUseCases.goForward,
             engineView,
         )
+    }
+
+    private val windowFeature by lazy { WindowFeature(components.store, components.tabsUseCases) }
+
+    private val swipeRefreshFeature by lazy {
+        SwipeRefreshFeature(components.store, components.sessionUseCases.reload, pageView)
     }
 
     private val fullScreenFeature by lazy {
@@ -184,17 +195,17 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         components.notificationsDelegate.bindToActivity(this)
-        bind(sessionFeature, fullScreenFeature, promptFeature, sitePermissionsFeature, downloadsFeature, contextMenuFeature, copyImageFeature, thumbnailsFeature)
+        bind(sessionFeature, windowFeature, swipeRefreshFeature, fullScreenFeature, promptFeature, sitePermissionsFeature, downloadsFeature, contextMenuFeature, copyImageFeature, thumbnailsFeature)
         onBackPressedDispatcher.addCallback(this) {
             if (fullScreenFeature.onBackPressed() || promptFeature.onBackPressed() || sessionFeature.onBackPressed()) return@addCallback
-            if (returnToCaller()) return@addCallback
+            if (returnToCaller() || closeSelectedTab()) return@addCallback
             isEnabled = false
             onBackPressedDispatcher.onBackPressed()
             isEnabled = true
         }
         setContent {
             CompositionLocalProvider(LocalImageLoaders provides imageLoaders) {
-                BrowserScreen(engineView)
+                BrowserScreen(engineView, pageView)
             }
         }
         val fresh = savedInstanceState == null && intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY == 0
@@ -270,6 +281,14 @@ class MainActivity : AppCompatActivity() {
         components.tabsUseCases.removeTab(tab.id)
         if (components.store.state.tabs.isEmpty()) components.tabsUseCases.addTab(SPEED_DIAL_URL)
         moveTaskToBack(true)
+        return true
+    }
+
+    private fun closeSelectedTab(): Boolean {
+        val state = components.store.state
+        val tab = state.selectedTab ?: return false
+        if (state.tabs.size == 1 && tab.content.url == SPEED_DIAL_URL) return false
+        components.closeTab(tab.id)
         return true
     }
 
