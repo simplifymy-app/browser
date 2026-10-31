@@ -45,6 +45,7 @@ import mozilla.components.feature.contextmenu.ContextMenuFeature
 import mozilla.components.feature.downloads.DownloadsFeature
 import mozilla.components.feature.downloads.manager.FetchDownloadManager
 import mozilla.components.feature.downloads.temporary.CopyDownloadFeature
+import mozilla.components.feature.media.service.AbstractMediaSessionService
 import mozilla.components.feature.prompts.PromptFeature
 import mozilla.components.feature.search.ext.buildSearchUrl
 import mozilla.components.feature.session.FullScreenFeature
@@ -228,6 +229,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         val fresh = savedInstanceState == null && intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY == 0
+        if (fresh) selectMediaTab(intent)
         val incoming = if (fresh) takeLink(intent) else null
         lifecycleScope.launch {
             components.tabsRestored.await()
@@ -240,11 +242,18 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        selectMediaTab(intent)
         val incoming = takeLink(intent) ?: return
         lifecycleScope.launch {
             components.tabsRestored.await()
             open(incoming)
         }
+    }
+
+    private fun selectMediaTab(intent: Intent) {
+        if (intent.action != AbstractMediaSessionService.ACTION_SWITCH_TAB) return
+        val tabId = intent.getStringExtra(AbstractMediaSessionService.EXTRA_TAB_ID) ?: return
+        if (components.store.state.tabs.any { it.id == tabId }) components.tabsUseCases.selectTab(tabId)
     }
 
     private fun takeLink(intent: Intent): IncomingLink? {
@@ -319,6 +328,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         components.notificationsDelegate.unBindActivity(this)
+        if (isFinishing) components.pauseMedia()
         super.onDestroy()
     }
 

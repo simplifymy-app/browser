@@ -176,6 +176,10 @@ class Components(private val context: Context) {
 
     val tabsUseCases by lazy { TabsUseCases(store) }
 
+    fun pauseMedia() {
+        store.state.tabs.forEach { it.mediaSessionState?.controller?.pause() }
+    }
+
     fun closeTab(id: String) {
         tabsUseCases.removeTab(id)
         if (store.state.selectedTabId != null) return

@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import mozilla.components.browser.state.action.DefaultDesktopModeAction
 import mozilla.components.browser.state.action.SearchAction
 import mozilla.components.feature.addons.update.GlobalAddonDependencyProvider
+import mozilla.components.feature.media.MediaSessionFeature
 import mozilla.components.support.ktx.android.content.isMainProcess
 import mozilla.components.support.webextensions.WebExtensionSupport
 
@@ -26,6 +27,7 @@ class BrowserApp : Application() {
         with(components) {
             store.dispatch(SearchAction.RefreshSearchEnginesAction)
             icons.install(engine, store)
+            MediaSessionFeature(this@BrowserApp, MediaSessionService::class.java, store).start()
             GlobalAddonDependencyProvider.initialize(addonManager, addonUpdater)
             WebExtensionSupport.initialize(
                 runtime = engine,

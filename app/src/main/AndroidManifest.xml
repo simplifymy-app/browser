@@ -187,5 +187,10 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
+        <service
+            android:name=".MediaSessionService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
     </application>
 </manifest>
