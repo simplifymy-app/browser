@@ -11,6 +11,7 @@ import app.simplifymy.browser.core.database.BrowserDatabase
 import app.simplifymy.browser.core.database.TabThumbnails
 import app.simplifymy.browser.core.database.speedDialSnapshots
 import app.simplifymy.browser.core.errors.PageErrors
+import app.simplifymy.browser.core.intent.AppRequestInterceptor
 import app.simplifymy.browser.core.icons.DeclaredIcons
 import app.simplifymy.browser.core.search.ADDITIONAL_SEARCH_ENGINES
 import app.simplifymy.browser.core.settings.AppIconManager
@@ -98,7 +99,7 @@ class Components(private val context: Context) {
 
     val engine by lazy {
         val settings = DefaultSettings(
-            requestInterceptor = pageErrors,
+            requestInterceptor = AppRequestInterceptor(context, pageErrors) { store },
             historyTrackingDelegate = HistoryDelegate(lazy { history }),
         )
         GeckoEngine(context, settings, runtime)
@@ -139,7 +140,7 @@ class Components(private val context: Context) {
 
     val notificationsDelegate by lazy { NotificationsDelegate(NotificationManagerCompat.from(context)) }
 
-    val store by lazy {
+    val store: BrowserStore by lazy {
         BrowserStore(
             middleware = EngineMiddleware.create(engine) + listOf(
                 SearchMiddleware(context, additionalBundledSearchEngineIds = ADDITIONAL_SEARCH_ENGINES),

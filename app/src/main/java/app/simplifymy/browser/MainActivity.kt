@@ -39,6 +39,7 @@ import mozilla.components.browser.state.state.selectedOrDefaultSearchEngine
 import mozilla.components.browser.thumbnails.BrowserThumbnails
 import mozilla.components.concept.base.images.ImageLoadRequest
 import mozilla.components.concept.engine.EngineSession.LoadUrlFlags
+import mozilla.components.feature.app.links.AppLinksFeature
 import mozilla.components.feature.contextmenu.ContextMenuCandidate
 import mozilla.components.feature.contextmenu.ContextMenuFeature
 import mozilla.components.feature.downloads.DownloadsFeature
@@ -61,7 +62,12 @@ class MainActivity : AppCompatActivity() {
 
     private val engineView by lazy { components.engine.createView(this) }
 
-    private val pageView by lazy { SwipeRefreshLayout(this).apply { addView(engineView.asView()) } }
+    private val pageView by lazy {
+        SwipeRefreshLayout(this).apply {
+            addView(engineView.asView())
+            setDistanceToTriggerSync((PULL_TO_REFRESH_DP * resources.displayMetrics.density).toInt())
+        }
+    }
 
     private var permissionsRequester: PermissionsFeature? = null
 
@@ -84,7 +90,20 @@ class MainActivity : AppCompatActivity() {
     private val windowFeature by lazy { WindowFeature(components.store, components.tabsUseCases) }
 
     private val swipeRefreshFeature by lazy {
-        SwipeRefreshFeature(components.store, components.sessionUseCases.reload, pageView)
+        SwipeRefreshFeature(components.store, components.sessionUseCases.reload, pageView).also { feature ->
+            pageView.setOnChildScrollUpCallback { parent, child ->
+                engineView.canScrollVerticallyUp() || feature.canChildScrollUp(parent, child)
+            }
+        }
+    }
+
+    private val appLinksFeature by lazy {
+        AppLinksFeature(
+            context = this,
+            store = components.store,
+            fragmentManager = supportFragmentManager,
+            loadUrlUseCase = components.sessionUseCases.loadUrl,
+        )
     }
 
     private val fullScreenFeature by lazy {
@@ -195,7 +214,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         components.notificationsDelegate.bindToActivity(this)
-        bind(sessionFeature, windowFeature, swipeRefreshFeature, fullScreenFeature, promptFeature, sitePermissionsFeature, downloadsFeature, contextMenuFeature, copyImageFeature, thumbnailsFeature)
+        bind(sessionFeature, windowFeature, appLinksFeature, swipeRefreshFeature, fullScreenFeature, promptFeature, sitePermissionsFeature, downloadsFeature, contextMenuFeature, copyImageFeature, thumbnailsFeature)
         onBackPressedDispatcher.addCallback(this) {
             if (fullScreenFeature.onBackPressed() || promptFeature.onBackPressed() || sessionFeature.onBackPressed()) return@addCallback
             if (returnToCaller() || closeSelectedTab()) return@addCallback
@@ -338,6 +357,7 @@ class MainActivity : AppCompatActivity() {
 
     private companion object {
         const val THUMBNAIL_DP = 240
+        const val PULL_TO_REFRESH_DP = 128
         const val ANDROID_APP_SCHEME = "android-app"
     }
 }
